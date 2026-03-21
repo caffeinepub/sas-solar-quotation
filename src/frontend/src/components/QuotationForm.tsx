@@ -1,7 +1,11 @@
 import type React from "react";
 import { useState } from "react";
 import type { BankDetails, CustomerData, PaymentScheduleData } from "../types";
-import { calculate, formatINR } from "../utils/calculations";
+import {
+  calculate,
+  formatINR,
+  getDailyGenerationRange,
+} from "../utils/calculations";
 
 interface Props {
   onGenerate: (
@@ -22,7 +26,17 @@ const defaultPayment: PaymentScheduleData = {
   advance: 5,
   beforeInstallation: 70,
   materialArrival: 25,
-  afterInstallation: 5,
+  afterInstallation: 0,
+};
+
+const PANEL_BRANDS = ["Tata", "Waree", "Adani"];
+
+const PANEL_WATTAGES = [500, 530, 545, 550, 560, 575, 600, 630, 650];
+
+const INVERTER_BRANDS: Record<string, string> = {
+  Tata: "Tata",
+  Waree: "Waree",
+  Adani: "Adani",
 };
 
 function getQuotationNumber(): string {
@@ -39,13 +53,6 @@ const bankLabels: Record<keyof BankDetails, string> = {
   ifscCode: "IFSC Code",
 };
 
-const paymentLabels: Record<keyof PaymentScheduleData, string> = {
-  advance: "Advance / Booking (%)",
-  beforeInstallation: "Before Installation (%)",
-  materialArrival: "Material Arrival (%)",
-  afterInstallation: "After Installation (%)",
-};
-
 export default function QuotationForm({ onGenerate }: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [customer, setCustomer] = useState<CustomerData>({
@@ -53,28 +60,33 @@ export default function QuotationForm({ onGenerate }: Props) {
     address: "",
     mobile: "",
     email: "",
+    consumerNumber: "",
     capacity: 3,
     salePrice: 180000,
     electricityRate: 7,
     quotationNumber: getQuotationNumber(),
     date: today,
+    panelBrand: "Tata",
+    panelWattage: 545,
+    inverterBrand: "Tata",
   });
   const [bank, setBank] = useState<BankDetails>(defaultBank);
-  const [payment, setPayment] = useState<PaymentScheduleData>(defaultPayment);
+  const [payment] = useState<PaymentScheduleData>(defaultPayment);
 
   const calc = calculate(customer);
-  const paymentTotal =
-    payment.advance +
-    payment.beforeInstallation +
-    payment.materialArrival +
-    payment.afterInstallation;
 
   const updateCustomer = (field: keyof CustomerData, value: string | number) =>
     setCustomer((prev) => ({ ...prev, [field]: value }));
   const updateBank = (field: keyof BankDetails, value: string) =>
     setBank((prev) => ({ ...prev, [field]: value }));
-  const updatePayment = (field: keyof PaymentScheduleData, value: number) =>
-    setPayment((prev) => ({ ...prev, [field]: value }));
+
+  const handlePanelBrandChange = (brand: string) => {
+    setCustomer((prev) => ({
+      ...prev,
+      panelBrand: brand,
+      inverterBrand: INVERTER_BRANDS[brand] || brand,
+    }));
+  };
 
   const handleGenerate = () => {
     if (!customer.name || !customer.capacity || !customer.salePrice) {
@@ -88,6 +100,11 @@ export default function QuotationForm({ onGenerate }: Props) {
     "w-full px-3 py-2 rounded-lg text-sm outline-none focus:ring-2 focus:ring-yellow-400";
   const fieldStyle = {
     background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(212,175,55,0.3)",
+    color: "#fff",
+  };
+  const selectStyle = {
+    background: "#1a2a45",
     border: "1px solid rgba(212,175,55,0.3)",
     color: "#fff",
   };
@@ -117,6 +134,10 @@ export default function QuotationForm({ onGenerate }: Props) {
     </div>
   );
 
+  const advanceAmt = (customer.salePrice * 5) / 100;
+  const preDispatchAmt = (customer.salePrice * 70) / 100;
+  const afterInstallAmt = (customer.salePrice * 25) / 100;
+
   return (
     <div
       className="min-h-screen"
@@ -130,19 +151,19 @@ export default function QuotationForm({ onGenerate }: Props) {
       >
         <div className="flex items-center gap-3">
           <img
-            src="/assets/generated/sas-solar-logo-transparent.dim_400x400.png"
+            src="/assets/uploads/LOGO-SHREE-ADISHAKTI-SOLAR-1.jpeg"
             alt="SAS Solar"
-            className="w-10 h-10 object-contain"
+            className="w-10 h-10 object-contain rounded-full"
           />
           <div>
             <div
               className="font-bold text-sm"
               style={{ color: "#D4AF37", fontFamily: "Georgia, serif" }}
             >
-              SHREE ADISHAKTI SOLAR
+              SHREE ADISHAKTI SOLAR PVT LTD
             </div>
-            <div className="text-xs" style={{ color: "#a0aec0" }}>
-              Solar Quotation Generator
+            <div className="text-xs" style={{ color: "#a0b4c8" }}>
+              Solar Quotation System
             </div>
           </div>
         </div>
@@ -225,6 +246,23 @@ export default function QuotationForm({ onGenerate }: Props) {
                     />
                   </Field>
                 </div>
+                <Field
+                  id="cust-consumer"
+                  label="Consumer Number (Electricity Bill)"
+                >
+                  <input
+                    id="cust-consumer"
+                    data-ocid="form.consumer_number.input"
+                    type="text"
+                    value={customer.consumerNumber}
+                    onChange={(e) =>
+                      updateCustomer("consumerNumber", e.target.value)
+                    }
+                    className={fieldClass}
+                    style={fieldStyle}
+                    placeholder="e.g. 1234567890"
+                  />
+                </Field>
               </div>
             </div>
 
@@ -239,23 +277,25 @@ export default function QuotationForm({ onGenerate }: Props) {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <Field id="sys-capacity" label="Solar Capacity (kW) *">
-                    <input
+                    <select
                       id="sys-capacity"
-                      data-ocid="form.capacity.input"
-                      type="number"
-                      min="1"
-                      max="500"
-                      step="0.5"
+                      data-ocid="form.capacity.select"
                       value={customer.capacity}
                       onChange={(e) =>
                         updateCustomer(
                           "capacity",
-                          Number.parseFloat(e.target.value) || 0,
+                          Number.parseInt(e.target.value),
                         )
                       }
                       className={fieldClass}
-                      style={fieldStyle}
-                    />
+                      style={selectStyle}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((kw) => (
+                        <option key={kw} value={kw}>
+                          {kw} kW
+                        </option>
+                      ))}
+                    </select>
                   </Field>
                   <Field id="sys-rate" label="Electricity Rate (&#8377;/unit)">
                     <input
@@ -320,6 +360,91 @@ export default function QuotationForm({ onGenerate }: Props) {
               </div>
             </div>
 
+            {/* Panel & Inverter Selection */}
+            <div style={sectionStyle}>
+              <h3
+                className="text-sm font-bold mb-4 tracking-wider"
+                style={{ color: "#FF6B35" }}
+              >
+                PANEL & INVERTER SELECTION
+              </h3>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field id="panel-brand" label="Solar Panel Brand">
+                    <select
+                      id="panel-brand"
+                      value={customer.panelBrand}
+                      onChange={(e) => handlePanelBrandChange(e.target.value)}
+                      className={fieldClass}
+                      style={selectStyle}
+                    >
+                      {PANEL_BRANDS.map((b) => (
+                        <option key={b} value={b}>
+                          {b} Bifacial
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field id="panel-wattage" label="Panel Wattage (Wp)">
+                    <select
+                      id="panel-wattage"
+                      value={customer.panelWattage}
+                      onChange={(e) =>
+                        updateCustomer(
+                          "panelWattage",
+                          Number.parseInt(e.target.value),
+                        )
+                      }
+                      className={fieldClass}
+                      style={selectStyle}
+                    >
+                      {PANEL_WATTAGES.map((w) => (
+                        <option key={w} value={w}>
+                          {w} Wp
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+                <Field id="inverter-brand" label="Inverter Brand">
+                  <select
+                    id="inverter-brand"
+                    value={customer.inverterBrand}
+                    onChange={(e) =>
+                      updateCustomer("inverterBrand", e.target.value)
+                    }
+                    className={fieldClass}
+                    style={selectStyle}
+                  >
+                    {PANEL_BRANDS.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <div
+                  className="text-xs p-2 rounded"
+                  style={{
+                    background: "rgba(212,175,55,0.08)",
+                    color: "#a0b4c8",
+                    border: "1px solid rgba(212,175,55,0.15)",
+                  }}
+                >
+                  Selected:{" "}
+                  <span style={{ color: "#D4AF37" }}>
+                    {customer.panelBrand} {customer.panelWattage}Wp Bifacial
+                    Panel
+                  </span>{" "}
+                  +
+                  <span style={{ color: "#D4AF37" }}>
+                    {" "}
+                    {customer.inverterBrand} Inverter
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Bank Details */}
             <div style={sectionStyle}>
               <h3
@@ -352,71 +477,76 @@ export default function QuotationForm({ onGenerate }: Props) {
           </div>
 
           <div>
-            {/* Payment Schedule */}
+            {/* Payment Schedule - Fixed */}
             <div style={sectionStyle}>
               <h3
                 className="text-sm font-bold mb-4 tracking-wider"
                 style={{ color: "#FF6B35" }}
               >
-                PAYMENT SCHEDULE (Editable)
+                PAYMENT SCHEDULE (Fixed)
               </h3>
               <div className="space-y-3">
-                {(
-                  Object.keys(paymentLabels) as (keyof PaymentScheduleData)[]
-                ).map((field) => (
-                  <div key={field} className="flex items-center gap-3">
-                    <label
-                      htmlFor={`pay-${field}`}
-                      className="flex-1 text-xs"
-                      style={labelStyle}
-                    >
-                      {paymentLabels[field]}
-                    </label>
-                    <input
-                      id={`pay-${field}`}
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={payment[field]}
-                      onChange={(e) =>
-                        updatePayment(
-                          field,
-                          Number.parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      className="w-20 px-3 py-2 rounded-lg text-sm text-center outline-none"
-                      style={{
-                        background: "rgba(255,255,255,0.07)",
-                        border: "1px solid rgba(212,175,55,0.3)",
-                        color: "#fff",
-                      }}
-                    />
-                    <span
-                      className="text-xs w-24 text-right"
-                      style={{ color: "#D4AF37" }}
-                    >
-                      {formatINR((customer.salePrice * payment[field]) / 100)}
+                {[
+                  { label: "Advance / Booking", pct: 5, amt: advanceAmt },
+                  {
+                    label: "Pre-Dispatch of Material (70%)",
+                    pct: 70,
+                    amt: preDispatchAmt,
+                  },
+                  {
+                    label: "After Installation",
+                    pct: 25,
+                    amt: afterInstallAmt,
+                  },
+                ].map(({ label, pct, amt }) => (
+                  <div
+                    key={label}
+                    className="flex items-center justify-between py-2 px-3 rounded-lg"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(212,175,55,0.15)",
+                    }}
+                  >
+                    <span className="text-xs" style={{ color: "#a0b4c8" }}>
+                      {label}
                     </span>
+                    <div className="text-right">
+                      <span
+                        className="text-sm font-bold mr-2"
+                        style={{ color: "#D4AF37" }}
+                      >
+                        {pct}%
+                      </span>
+                      <span className="text-xs" style={{ color: "#68d391" }}>
+                        {formatINR(amt)}
+                      </span>
+                    </div>
                   </div>
                 ))}
                 <div
-                  className="flex items-center gap-3 pt-2"
-                  style={{ borderTop: "1px solid rgba(212,175,55,0.2)" }}
+                  className="flex items-center justify-between py-2 px-3 rounded-lg"
+                  style={{
+                    background: "rgba(212,175,55,0.1)",
+                    border: "1px solid rgba(212,175,55,0.4)",
+                  }}
                 >
                   <span
-                    className="flex-1 text-xs font-bold"
+                    className="text-xs font-bold"
                     style={{ color: "#D4AF37" }}
                   >
-                    Total
+                    TOTAL
                   </span>
-                  <span
-                    className={`text-sm font-bold ${paymentTotal > 105 ? "text-red-400" : ""}`}
-                    style={{
-                      color: paymentTotal === 105 ? "#68d391" : undefined,
-                    }}
-                  >
-                    {paymentTotal}%
-                  </span>
+                  <div className="text-right">
+                    <span
+                      className="text-sm font-bold"
+                      style={{ color: "#68d391" }}
+                    >
+                      100% &nbsp;
+                    </span>
+                    <span className="text-xs" style={{ color: "#68d391" }}>
+                      {formatINR(customer.salePrice)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -443,7 +573,7 @@ export default function QuotationForm({ onGenerate }: Props) {
                   ["Net Cost (after subsidy)", formatINR(calc.netCost)],
                   [
                     "Daily Generation",
-                    `${calc.dailyGeneration.toFixed(1)} units`,
+                    `${getDailyGenerationRange(customer.capacity)} units/day`,
                   ],
                   [
                     "Annual Generation",

@@ -24,12 +24,18 @@ interface LineItem {
   gstRate: number;
 }
 
-function computeItems(salePrice: number, kw: number): LineItem[] {
-  const panels = Math.ceil((kw * 1000) / 545);
+function computeItems(
+  salePrice: number,
+  kw: number,
+  panelBrand = "Tata",
+  panelWattage = 545,
+  inverterBrand = "Tata",
+): LineItem[] {
+  const panels = Math.ceil((kw * 1000) / panelWattage);
   const allocs = [
     {
       key: "pv",
-      desc: `Solar PV Modules - 545W Mono PERC (${kw}kW)`,
+      desc: `${panelBrand} Bifacial Solar PV Modules - ${panelWattage}Wp (${kw}kW)`,
       hsn: "85414011",
       qty: String(panels),
       unit: "Nos",
@@ -38,7 +44,7 @@ function computeItems(salePrice: number, kw: number): LineItem[] {
     },
     {
       key: "inv",
-      desc: `Solar Inverter - ${kw}kW Grid-Tie String Inverter`,
+      desc: `${inverterBrand} Solar Inverter - ${kw}kW Grid-Tie String Inverter`,
       hsn: "85044090",
       qty: "1",
       unit: "No",
@@ -165,7 +171,13 @@ export default function InvoiceAndPayment({
   customer: CustomerData;
   bank: BankDetails;
 }) {
-  const items = computeItems(customer.salePrice, customer.capacity);
+  const items = computeItems(
+    customer.salePrice,
+    customer.capacity,
+    customer.panelBrand,
+    customer.panelWattage,
+    customer.inverterBrand,
+  );
   const subtotal = items.reduce((s, item) => s + item.baseAmount, 0);
   const totalCGST = items.reduce(
     (s, item) => s + (item.baseAmount * item.gstRate) / 200,
@@ -185,19 +197,19 @@ export default function InvoiceAndPayment({
       key: "advance",
       milestone: "Booking / Advance Payment",
       condition: "At Order Confirmation",
-      pct: 40,
+      pct: 5,
     },
     {
       key: "before",
-      milestone: "Before Installation",
-      condition: "15 Days Prior to Installation",
-      pct: 30,
+      milestone: "Pre-Dispatch of Material (70%)",
+      condition: "Pre-Dispatch of Material",
+      pct: 70,
     },
     {
       key: "after",
       milestone: "After Installation",
       condition: "After Successful Installation & Testing",
-      pct: 30,
+      pct: 25,
     },
   ];
 

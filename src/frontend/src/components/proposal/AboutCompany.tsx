@@ -37,7 +37,7 @@ export default function AboutCompany() {
       >
         <div style={{ textAlign: "center" }}>
           <img
-            src="/assets/generated/sas-solar-logo-transparent.dim_400x400.png"
+            src="/assets/uploads/LOGO-SHREE-ADISHAKTI-SOLAR-1.jpeg"
             alt="Logo"
             style={{
               width: "120px",

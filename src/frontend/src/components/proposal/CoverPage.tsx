@@ -33,17 +33,17 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
       <div
         style={{
           background: `linear-gradient(135deg, ${GREEN} 0%, #145236 60%, #0d3d28 100%)`,
-          padding: "36px 40px 28px",
+          padding: "16px 40px 12px",
           flex: "0 0 auto",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: "14px" }}>
+        <div style={{ textAlign: "center", marginBottom: "8px" }}>
           <img
-            src="/assets/generated/sas-solar-logo-transparent.dim_400x400.png"
+            src="/assets/uploads/LOGO-SHREE-ADISHAKTI-SOLAR-1.jpeg"
             alt="Logo"
             style={{
-              width: "100px",
-              height: "100px",
+              width: "72px",
+              height: "72px",
               objectFit: "contain",
               filter: "brightness(1.1)",
             }}
@@ -54,7 +54,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
             style={{
               color: "#fff",
               fontFamily: "Georgia, serif",
-              fontSize: "22px",
+              fontSize: "20px",
               letterSpacing: "3px",
               margin: 0,
               fontWeight: 700,
@@ -66,11 +66,11 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
             style={{
               color: "rgba(255,255,255,0.8)",
               fontSize: "11px",
-              marginTop: "6px",
+              marginTop: "4px",
               letterSpacing: "1.5px",
             }}
           >
-            AUTHORIZED CHANNEL PARTNER OF TATA POWER | PM SURYA GHAR YOJANA
+            BRIGHT POWER FOR BETTER FUTURE | PM SURYA GHAR YOJANA
           </p>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
       <div
         style={{
           background: `linear-gradient(135deg, ${BLUE} 0%, #153b7a 100%)`,
-          padding: "18px 40px",
+          padding: "10px 40px",
           flex: "0 0 auto",
           display: "flex",
           alignItems: "center",
@@ -96,15 +96,15 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
       >
         <div
           style={{
-            width: "56px",
-            height: "56px",
+            width: "42px",
+            height: "42px",
             borderRadius: "50%",
             background: "rgba(255,255,255,0.15)",
             border: "2px solid rgba(255,255,255,0.4)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "26px",
+            fontSize: "20px",
             flexShrink: 0,
           }}
         >
@@ -115,10 +115,10 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
             style={{
               color: "#fff",
               fontFamily: "Georgia, serif",
-              fontSize: "16px",
+              fontSize: "14px",
               fontWeight: 700,
               letterSpacing: "1px",
-              marginBottom: "4px",
+              marginBottom: "2px",
             }}
           >
             PM Surya Ghar Muft Bijli Yojana
@@ -130,8 +130,8 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           <div
             style={{
               display: "flex",
-              gap: "12px",
-              marginTop: "8px",
+              gap: "10px",
+              marginTop: "5px",
               flexWrap: "wrap",
             }}
           >
@@ -162,7 +162,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
       <div
         style={{
           background: "#E8F5EE",
-          padding: "28px 40px",
+          padding: "14px 40px",
           textAlign: "center",
           flex: "0 0 auto",
           borderBottom: `2px solid ${GREEN}`,
@@ -184,9 +184,9 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           style={{
             color: "#1A1A1A",
             fontFamily: "Georgia, serif",
-            fontSize: "28px",
+            fontSize: "24px",
             fontWeight: 700,
-            margin: "10px 0 6px",
+            margin: "6px 0 4px",
           }}
         >
           {customer.name || "Customer Name"}
@@ -195,8 +195,13 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           {customer.address || "Customer Address"}
         </p>
         {customer.mobile && (
-          <p style={{ color: "#4a5568", fontSize: "12px", marginTop: "4px" }}>
+          <p style={{ color: "#4a5568", fontSize: "12px", marginTop: "3px" }}>
             {customer.mobile} {customer.email ? `| ${customer.email}` : ""}
+          </p>
+        )}
+        {customer.consumerNumber && (
+          <p style={{ color: "#4a5568", fontSize: "12px", marginTop: "3px" }}>
+            Consumer No: <strong>{customer.consumerNumber}</strong>
           </p>
         )}
       </div>
@@ -205,8 +210,9 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
       <div
         style={{
           flex: 1,
+          minHeight: 0,
           background: "#fff",
-          padding: "20px 40px",
+          padding: "10px 40px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -216,9 +222,9 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           {/* Solar icon */}
           <div
             style={{
-              width: "110px",
-              height: "110px",
-              margin: "0 auto 16px",
+              width: "80px",
+              height: "80px",
+              margin: "0 auto 10px",
               position: "relative",
             }}
           >
@@ -233,7 +239,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
             <div
               style={{
                 position: "absolute",
-                inset: "20px",
+                inset: "18px",
                 borderRadius: "50%",
                 background: `linear-gradient(135deg, ${BLUE}44, ${GREEN}44)`,
               }}
@@ -241,7 +247,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
             <div
               style={{
                 position: "absolute",
-                inset: "35px",
+                inset: "32px",
                 borderRadius: "50%",
                 background: `linear-gradient(135deg, ${GREEN}, ${BLUE})`,
               }}
@@ -250,14 +256,15 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           <p
             style={{
               color: "#1A1A1A",
-              fontSize: "15px",
+              fontSize: "14px",
               fontFamily: "Georgia, serif",
               fontWeight: 600,
+              margin: "0 0 4px",
             }}
           >
             Harnessing the Power of the Sun
           </p>
-          <p style={{ color: GREEN, fontSize: "12px" }}>
+          <p style={{ color: GREEN, fontSize: "12px", margin: 0 }}>
             Clean · Affordable · Sustainable Energy for Odisha
           </p>
         </div>
@@ -267,14 +274,16 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
       <div
         style={{
           background: `linear-gradient(135deg, ${GREEN}, #145236)`,
-          padding: "18px 40px",
+          padding: "12px 40px 14px",
+          flex: "0 0 auto",
+          marginBottom: "8px",
         }}
       >
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "12px",
+            gap: "10px",
             textAlign: "center",
           }}
         >
@@ -290,7 +299,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
             <div
               key={label}
               style={{
-                padding: "10px",
+                padding: "8px",
                 borderRadius: "8px",
                 background: "rgba(255,255,255,0.12)",
                 border: "1px solid rgba(255,255,255,0.25)",
@@ -299,7 +308,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
               <p
                 style={{
                   color: "rgba(255,255,255,0.7)",
-                  fontSize: "9px",
+                  fontSize: "8px",
                   margin: "0 0 4px",
                   letterSpacing: "1px",
                   textTransform: "uppercase",
@@ -310,7 +319,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
               <p
                 style={{
                   color: "#fff",
-                  fontSize: "15px",
+                  fontSize: "14px",
                   fontWeight: 700,
                   margin: 0,
                   fontFamily: "Georgia, serif",
@@ -321,7 +330,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
               <p
                 style={{
                   color: "rgba(255,255,255,0.6)",
-                  fontSize: "9px",
+                  fontSize: "8px",
                   margin: "2px 0 0",
                 }}
               >
@@ -332,8 +341,8 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
         </div>
         <div
           style={{
-            marginTop: "12px",
-            paddingTop: "10px",
+            marginTop: "8px",
+            paddingTop: "7px",
             borderTop: "1px solid rgba(255,255,255,0.2)",
             textAlign: "center",
           }}

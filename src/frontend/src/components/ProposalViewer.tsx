@@ -37,7 +37,7 @@ export default function ProposalViewer({ customer, bank, onBack }: Props) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <img
-            src="/assets/generated/sas-solar-logo-transparent.dim_400x400.png"
+            src="/assets/uploads/LOGO-SHREE-ADISHAKTI-SOLAR-1.jpeg"
             alt="Logo"
             style={{ width: "36px", height: "36px", objectFit: "contain" }}
           />

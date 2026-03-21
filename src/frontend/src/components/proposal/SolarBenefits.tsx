@@ -1,4 +1,5 @@
 import type { Calculations, CustomerData } from "../../types";
+import { getDailyGenerationRange } from "../../utils/calculations";
 import PageHeader from "./PageHeader";
 
 function generateBenefitsSummary(
@@ -143,7 +144,7 @@ export default function SolarBenefits({
         {[
           [
             "Daily Output",
-            `${calc.dailyGeneration.toFixed(1)} units`,
+            `${getDailyGenerationRange(customer.capacity)} units`,
             "kWh per day",
           ],
           [

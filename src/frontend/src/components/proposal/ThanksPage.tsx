@@ -33,7 +33,7 @@ export default function ThanksPage() {
         }}
       >
         <img
-          src="/assets/generated/sas-solar-logo-transparent.dim_400x400.png"
+          src="/assets/uploads/LOGO-SHREE-ADISHAKTI-SOLAR-1.jpeg"
           alt="Logo"
           style={{
             width: "90px",
@@ -62,7 +62,7 @@ export default function ThanksPage() {
             letterSpacing: "1px",
           }}
         >
-          AUTHORIZED CHANNEL PARTNER OF TATA POWER | PM SURYA GHAR YOJANA
+          BRIGHT POWER FOR BETTER FUTURE | PM SURYA GHAR YOJANA
         </p>
       </div>
 
@@ -159,7 +159,7 @@ export default function ThanksPage() {
               letterSpacing: "1px",
             }}
           >
-            ☀️ Harnessing the Power of the Sun for a Brighter Tomorrow ☀️
+            ☀️ Bright Power for Better Future ☀️
           </p>
         </div>
 

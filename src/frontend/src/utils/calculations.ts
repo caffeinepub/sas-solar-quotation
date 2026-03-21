@@ -4,9 +4,28 @@ export function calculateSubsidy(capacityKW: number): {
   central: number;
   state: number;
 } {
-  if (capacityKW <= 2) return { central: 60000, state: 50000 };
-  if (capacityKW <= 3) return { central: 78000, state: 60000 };
-  return { central: 78000, state: 60000 };
+  if (capacityKW <= 2) return { central: 60000, state: 50000 }; // total 110000
+  return { central: 78000, state: 60000 }; // total 138000
+}
+
+/**
+ * Daily generation based on defined reference points:
+ * 2kW = 9 units/day (mid of 8-10)
+ * 3kW = 13.5 units/day (mid of 12-15)
+ * 5kW = 22.5 units/day (mid of 20-25)
+ * Other capacities interpolated proportionally at 4.5 units/kW/day
+ */
+export function getDailyGeneration(capacityKW: number): number {
+  return capacityKW * 4.5;
+}
+
+export function getDailyGenerationRange(capacityKW: number): string {
+  const min = Math.round(capacityKW * 4.0);
+  const max = Math.round(capacityKW * 5.0);
+  if (capacityKW === 2) return "8-10";
+  if (capacityKW === 3) return "12-15";
+  if (capacityKW === 5) return "20-25";
+  return `${min}-${max}`;
 }
 
 export function calculate(data: CustomerData): Calculations {
@@ -15,7 +34,7 @@ export function calculate(data: CustomerData): Calculations {
   );
   const totalSubsidy = centralSubsidy + stateSubsidy;
   const netCost = Math.max(0, data.salePrice - totalSubsidy);
-  const dailyGeneration = data.capacity * 3.5;
+  const dailyGeneration = getDailyGeneration(data.capacity);
   const monthlyGeneration = dailyGeneration * 30;
   const annualGeneration = dailyGeneration * 365;
   const annualSavings = annualGeneration * data.electricityRate;

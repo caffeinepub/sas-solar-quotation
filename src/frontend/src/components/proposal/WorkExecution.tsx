@@ -5,61 +5,61 @@ export default function WorkExecution() {
     {
       phase: "Phase 1",
       activity: "Site Survey & Assessment",
-      duration: "Day 1-2",
+      duration: "Day 1–2",
       desc: "Structural assessment, roof measurement, shadow analysis, load evaluation, DISCOM feasibility check.",
     },
     {
       phase: "Phase 2",
       activity: "System Design & Engineering",
-      duration: "Day 3-5",
+      duration: "Day 2–4",
       desc: "Single-line diagram, structural drawing, panel layout design, shadow simulation, BOM preparation.",
     },
     {
       phase: "Phase 3",
       activity: "Material Procurement",
-      duration: "Day 6-15",
+      duration: "Day 4–12",
       desc: "Ordering of solar panels, inverter, mounting structure, cables, BOS components from approved vendors.",
     },
     {
       phase: "Phase 4",
       activity: "Civil & Structural Work",
-      duration: "Day 16-18",
+      duration: "Day 12–14",
       desc: "Roof preparation, channel cutting for cable routing, earthing pit excavation, lightning arrester installation.",
     },
     {
       phase: "Phase 5",
       activity: "Solar Panel Installation",
-      duration: "Day 19-21",
+      duration: "Day 14–16",
       desc: "Mounting structure erection, solar panel fixing, DC cable routing, MC4 connector crimping & installation.",
     },
     {
       phase: "Phase 6",
       activity: "Electrical Work & Wiring",
-      duration: "Day 22-24",
+      duration: "Day 16–18",
       desc: "Inverter installation, AC cable routing, DB board installation, earthing connections, SPD installation.",
     },
     {
       phase: "Phase 7",
       activity: "System Testing & Commissioning",
-      duration: "Day 25-26",
+      duration: "Day 18–20",
       desc: "Open circuit voltage test, insulation test, polarity check, inverter configuration, trial run & performance verification.",
     },
     {
       phase: "Phase 8",
       activity: "Net Metering Application",
-      duration: "Day 27-35",
+      duration: "Day 20–25",
       desc: "DISCOM net metering application submission, inspection scheduling, bidirectional meter installation by DISCOM.",
     },
     {
       phase: "Phase 9",
       activity: "PM Surya Ghar Registration",
-      duration: "Day 28-45",
+      duration: "Day 22–28",
       desc: "Portal registration, document submission, inspection by empaneled agency, subsidy disbursement processing.",
     },
     {
       phase: "Phase 10",
       activity: "Handover & Customer Training",
-      duration: "Day 45",
+      duration: "Day 28–30",
       desc: "System handover, monitoring app setup, operations training, warranty documentation, AMC agreement signing.",
     },
   ];
@@ -196,7 +196,7 @@ export default function WorkExecution() {
             TOTAL PROJECT COMPLETION
           </p>
           <p style={{ color: "#fff", fontSize: "12px", margin: 0 }}>
-            Approximately 45-60 days from order confirmation (subject to DISCOM
+            Approximately 20–30 days from order confirmation (subject to DISCOM
             & government processing)
           </p>
         </div>
@@ -210,7 +210,7 @@ export default function WorkExecution() {
               margin: 0,
             }}
           >
-            45-60
+            20–30
           </p>
           <p style={{ color: "#a0b4c8", fontSize: "10px", margin: 0 }}>Days</p>
         </div>

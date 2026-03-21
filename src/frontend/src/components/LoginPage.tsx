@@ -33,7 +33,7 @@ export default function LoginPage({ onLogin }: Props) {
       <div className="w-full max-w-md mx-4">
         <div className="text-center mb-8">
           <img
-            src="/assets/generated/sas-solar-logo-transparent.dim_400x400.png"
+            src="/assets/uploads/LOGO-SHREE-ADISHAKTI-SOLAR-1.jpeg"
             alt="Shree Adishakti Solar"
             className="w-28 h-28 mx-auto mb-4 object-contain"
           />

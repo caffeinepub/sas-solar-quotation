@@ -3,11 +3,15 @@ export interface CustomerData {
   address: string;
   mobile: string;
   email: string;
+  consumerNumber: string;
   capacity: number;
   salePrice: number;
   electricityRate: number;
   quotationNumber: string;
   date: string;
+  panelBrand: string;
+  panelWattage: number;
+  inverterBrand: string;
 }
 
 export interface BankDetails {
