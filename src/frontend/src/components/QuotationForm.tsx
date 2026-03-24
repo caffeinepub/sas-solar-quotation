@@ -33,14 +33,14 @@ const defaultPayment: PaymentScheduleData = {
   afterInstallation: 0,
 };
 
-const PANEL_BRANDS = ["Tata", "Waree", "Adani"];
+const PANEL_BRANDS = ["Tata Bifacial", "Waree Bifacial", "Adani Bifacial"];
 
 const PANEL_WATTAGES = [500, 530, 545, 550, 560, 575, 600, 630, 650];
 
 const INVERTER_BRANDS: Record<string, string> = {
-  Tata: "Tata",
-  Waree: "Waree",
-  Adani: "Adani",
+  "Tata Bifacial": "Tata",
+  "Waree Bifacial": "Waree",
+  "Adani Bifacial": "Adani",
 };
 
 function getQuotationNumber(): string {
@@ -84,9 +84,9 @@ export default function QuotationForm({
     electricityRate: 7,
     quotationNumber: getQuotationNumber(),
     date: today,
-    panelBrand: "Tata",
+    panelBrand: "Tata Bifacial",
     panelWattage: 545,
-    inverterBrand: "Tata",
+    inverterBrand: "Tata", // auto-set from brand map
   });
   const [bank, setBank] = useState<BankDetails>(defaultBank);
   const [payment] = useState<PaymentScheduleData>(defaultPayment);

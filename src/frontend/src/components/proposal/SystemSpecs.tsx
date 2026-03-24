@@ -4,9 +4,9 @@ import PageHeader from "./PageHeader";
 export default function SystemSpecs({ customer }: { customer: CustomerData }) {
   const kw = customer.capacity;
   const panels = Math.ceil((kw * 1000) / 545);
-  const dailyGen = (kw * 3.5).toFixed(1);
-  const monthlyGen = (kw * 3.5 * 30).toFixed(0);
-  const annualGen = (kw * 3.5 * 365).toFixed(0);
+  const dailyGen = (kw * 4.5).toFixed(1);
+  const monthlyGen = (kw * 4.5 * 30).toFixed(0);
+  const annualGen = (kw * 4.5 * 365).toFixed(0);
 
   const components = [
     {
@@ -208,7 +208,7 @@ export default function SystemSpecs({ customer }: { customer: CustomerData }) {
                 lineHeight: "1.6",
               }}
             >
-              Based on {kw}kW system @ 3.5 units/kW/day in Odisha. Actual
+              Based on {kw}kW system @ 4.5 units/kW/day in Odisha. Actual
               generation may vary ±10% based on weather, shading, and system
               losses.
             </p>

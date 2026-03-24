@@ -13,9 +13,9 @@ export default function FinancialAndSpecs({
 
   const kw = customer.capacity;
   const panels = Math.ceil((kw * 1000) / 545);
-  const dailyGen = (kw * 3.5).toFixed(1);
-  const monthlyGen = (kw * 3.5 * 30).toFixed(0);
-  const annualGen = (kw * 3.5 * 365).toFixed(0);
+  const dailyGen = (kw * 4.5).toFixed(1);
+  const monthlyGen = (kw * 4.5 * 30).toFixed(0);
+  const annualGen = (kw * 4.5 * 365).toFixed(0);
 
   const components = [
     {

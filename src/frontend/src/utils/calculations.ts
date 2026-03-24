@@ -9,25 +9,16 @@ export function calculateSubsidy(capacityKW: number): {
 }
 
 /**
- * Daily generation based on defined reference points:
- * 2kW = 9 units/day (mid of 8-10)
- * 3kW = 13.5 units/day (mid of 12-15)
- * 5kW = 22.5 units/day (mid of 20-25)
- * Other capacities interpolated proportionally at 4.5 units/kW/day
+ * Daily generation @ 4–5 kWh per kW per day
+ * All capacities: mid value = kW * 4.5
  */
 export function getDailyGeneration(capacityKW: number): number {
-  if (capacityKW === 2) return 9;
-  if (capacityKW === 3) return 13.5;
-  if (capacityKW === 5) return 22.5;
   return capacityKW * 4.5;
 }
 
 export function getDailyGenerationRange(capacityKW: number): string {
-  const min = Math.round(capacityKW * 4.0);
-  const max = Math.round(capacityKW * 5.0);
-  if (capacityKW === 2) return "8-10";
-  if (capacityKW === 3) return "12-15";
-  if (capacityKW === 5) return "20-25";
+  const min = Math.round(capacityKW * 4);
+  const max = Math.round(capacityKW * 5);
   return `${min}-${max}`;
 }
 
