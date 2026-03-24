@@ -290,7 +290,7 @@ export default function BillOfMaterial({
           Structure
         </p>
         <p style={{ fontSize: "11px", color: "#333", margin: 0 }}>
-          Hot Dip Galvanized with 8ft Height
+          Structure Size as per Requirement
         </p>
       </div>
 
