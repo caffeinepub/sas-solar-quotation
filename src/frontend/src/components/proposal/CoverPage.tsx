@@ -29,11 +29,11 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
         overflow: "hidden",
       }}
     >
-      {/* Top Green Header */}
+      {/* Green Header with Logo, Name & Address */}
       <div
         style={{
           background: `linear-gradient(135deg, ${GREEN} 0%, #145236 60%, #0d3d28 100%)`,
-          padding: "16px 40px 12px",
+          padding: "14px 40px 14px",
           flex: "0 0 auto",
         }}
       >
@@ -62,9 +62,32 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           >
             {COMPANY.name}
           </h1>
+          {/* Address directly below company name */}
           <p
             style={{
-              color: "rgba(255,255,255,0.8)",
+              color: "rgba(255,255,255,0.85)",
+              fontSize: "9px",
+              margin: "5px 0 2px",
+              letterSpacing: "0.4px",
+              lineHeight: "1.5",
+            }}
+          >
+            {COMPANY.address}
+          </p>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.85)",
+              fontSize: "9px",
+              margin: "2px 0 6px",
+              letterSpacing: "0.4px",
+            }}
+          >
+            📞 {COMPANY.mobile} &nbsp;|&nbsp; ✉ {COMPANY.email} &nbsp;|&nbsp; 🌐{" "}
+            {COMPANY.website}
+          </p>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.75)",
               fontSize: "11px",
               marginTop: "4px",
               letterSpacing: "1.5px",
@@ -206,7 +229,7 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
         )}
       </div>
 
-      {/* Decorative center */}
+      {/* Decorative center — flex fill */}
       <div
         style={{
           flex: 1,
@@ -219,7 +242,6 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
         }}
       >
         <div style={{ textAlign: "center" }}>
-          {/* Solar icon */}
           <div
             style={{
               width: "80px",
@@ -270,13 +292,13 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
         </div>
       </div>
 
-      {/* Bottom Details */}
+      {/* System Details — some space above bottom */}
       <div
         style={{
           background: `linear-gradient(135deg, ${GREEN}, #145236)`,
-          padding: "12px 40px 14px",
+          padding: "12px 40px",
           flex: "0 0 auto",
-          marginBottom: "8px",
+          marginBottom: "18px",
         }}
       >
         <div
@@ -339,27 +361,16 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
             </div>
           ))}
         </div>
-        <div
-          style={{
-            marginTop: "8px",
-            paddingTop: "7px",
-            borderTop: "1px solid rgba(255,255,255,0.2)",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              color: "rgba(255,255,255,0.7)",
-              fontSize: "9px",
-              margin: 0,
-            }}
-          >
-            {COMPANY.address}
-            <br />
-            {COMPANY.mobile} | {COMPANY.email} | {COMPANY.website}
-          </p>
-        </div>
       </div>
+
+      {/* Bottom decorative line */}
+      <div
+        style={{
+          height: "6px",
+          background: `linear-gradient(90deg, ${BLUE}, ${GREEN}, ${BLUE})`,
+          flex: "0 0 auto",
+        }}
+      />
     </div>
   );
 }

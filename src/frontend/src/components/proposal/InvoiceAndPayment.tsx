@@ -112,64 +112,14 @@ function computeItems(
   });
 }
 
-const QR_CELLS = [
-  { id: "c00", on: 1 },
-  { id: "c01", on: 1 },
-  { id: "c02", on: 1 },
-  { id: "c03", on: 0 },
-  { id: "c04", on: 1 },
-  { id: "c05", on: 1 },
-  { id: "c06", on: 1 },
-  { id: "c10", on: 1 },
-  { id: "c11", on: 0 },
-  { id: "c12", on: 1 },
-  { id: "c13", on: 0 },
-  { id: "c14", on: 1 },
-  { id: "c15", on: 0 },
-  { id: "c16", on: 1 },
-  { id: "c20", on: 1 },
-  { id: "c21", on: 1 },
-  { id: "c22", on: 1 },
-  { id: "c23", on: 0 },
-  { id: "c24", on: 1 },
-  { id: "c25", on: 1 },
-  { id: "c26", on: 1 },
-  { id: "c30", on: 0 },
-  { id: "c31", on: 0 },
-  { id: "c32", on: 0 },
-  { id: "c33", on: 1 },
-  { id: "c34", on: 0 },
-  { id: "c35", on: 0 },
-  { id: "c36", on: 0 },
-  { id: "c40", on: 1 },
-  { id: "c41", on: 0 },
-  { id: "c42", on: 1 },
-  { id: "c43", on: 0 },
-  { id: "c44", on: 1 },
-  { id: "c45", on: 0 },
-  { id: "c46", on: 1 },
-  { id: "c50", on: 0 },
-  { id: "c51", on: 1 },
-  { id: "c52", on: 0 },
-  { id: "c53", on: 1 },
-  { id: "c54", on: 0 },
-  { id: "c55", on: 1 },
-  { id: "c56", on: 0 },
-  { id: "c60", on: 1 },
-  { id: "c61", on: 1 },
-  { id: "c62", on: 1 },
-  { id: "c63", on: 0 },
-  { id: "c64", on: 1 },
-  { id: "c65", on: 1 },
-  { id: "c66", on: 1 },
-];
-
 export default function InvoiceAndPayment({
   customer,
   bank,
+  upiQrImage,
 }: {
   customer: CustomerData;
   bank: BankDetails;
+  upiQrImage?: string;
 }) {
   const items = computeItems(
     customer.salePrice,
@@ -539,198 +489,200 @@ export default function InvoiceAndPayment({
 
       {/* ─── PAYMENT SCHEDULE ─── */}
       <div style={{ borderTop: `2px solid ${BLUE}`, paddingTop: "8px" }}>
+        {/* Full-width: Payment Schedule label */}
+        <p
+          style={{
+            color: BLUE,
+            fontSize: "9px",
+            fontWeight: 700,
+            letterSpacing: "1px",
+            margin: "0 0 6px",
+          }}
+        >
+          PAYMENT SCHEDULE (100% Total)
+        </p>
+
+        {/* Full-width: Payment schedule table */}
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "9px",
+            marginBottom: "8px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: BLUE }}>
+              {[
+                "#",
+                "Payment Milestone",
+                "Condition",
+                "Percentage",
+                "Amount (₹)",
+              ].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: "5px 7px",
+                    color: "#fff",
+                    textAlign: "left",
+                    fontWeight: 600,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {schedule.map((row, idx) => (
+              <tr
+                key={row.key}
+                style={{
+                  background: idx % 2 === 0 ? "#E8F0FA" : "#fff",
+                  borderBottom: "1px solid #e2e8f0",
+                }}
+              >
+                <td
+                  style={{
+                    padding: "5px 7px",
+                    color: "#7a8898",
+                    fontWeight: 600,
+                  }}
+                >
+                  {idx + 1}
+                </td>
+                <td
+                  style={{
+                    padding: "5px 7px",
+                    color: "#1A1A1A",
+                    fontWeight: 600,
+                  }}
+                >
+                  {row.milestone}
+                </td>
+                <td style={{ padding: "5px 7px", color: "#4a5568" }}>
+                  {row.condition}
+                </td>
+                <td
+                  style={{
+                    padding: "5px 7px",
+                    color: GREEN,
+                    fontWeight: 700,
+                  }}
+                >
+                  {row.pct}%
+                </td>
+                <td
+                  style={{
+                    padding: "5px 7px",
+                    color: "#1A1A1A",
+                    fontWeight: 700,
+                  }}
+                >
+                  {formatINR((customer.salePrice * row.pct) / 100)}
+                </td>
+              </tr>
+            ))}
+            <tr style={{ background: GREEN }}>
+              <td
+                colSpan={3}
+                style={{
+                  padding: "5px 7px",
+                  color: "#fff",
+                  fontWeight: 700,
+                }}
+              >
+                Total
+              </td>
+              <td
+                style={{
+                  padding: "5px 7px",
+                  color: "#fff",
+                  fontWeight: 700,
+                }}
+              >
+                100%
+              </td>
+              <td
+                style={{
+                  padding: "5px 7px",
+                  color: "#fff",
+                  fontWeight: 700,
+                }}
+              >
+                {formatINR(customer.salePrice)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Bank details + QR side-by-side */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr auto",
-            gap: "12px",
+            gap: "10px",
           }}
         >
-          <div>
+          {/* Bank Details */}
+          <div
+            style={{
+              background: GREEN,
+              borderRadius: "6px",
+              padding: "8px 10px",
+            }}
+          >
             <p
               style={{
-                color: BLUE,
-                fontSize: "9px",
+                color: "rgba(255,255,255,0.7)",
+                fontSize: "8px",
                 fontWeight: 700,
                 letterSpacing: "1px",
-                margin: "0 0 6px",
+                margin: "0 0 5px",
               }}
             >
-              PAYMENT SCHEDULE (100% Total)
+              BANK DETAILS
             </p>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "9px",
-                marginBottom: "6px",
-              }}
-            >
-              <thead>
-                <tr style={{ background: BLUE }}>
-                  {[
-                    "#",
-                    "Payment Milestone",
-                    "Condition",
-                    "Percentage",
-                    "Amount (₹)",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: "5px 7px",
-                        color: "#fff",
-                        textAlign: "left",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {schedule.map((row, idx) => (
-                  <tr
-                    key={row.key}
-                    style={{
-                      background: idx % 2 === 0 ? "#E8F0FA" : "#fff",
-                      borderBottom: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <td
-                      style={{
-                        padding: "5px 7px",
-                        color: "#7a8898",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {idx + 1}
-                    </td>
-                    <td
-                      style={{
-                        padding: "5px 7px",
-                        color: "#1A1A1A",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {row.milestone}
-                    </td>
-                    <td style={{ padding: "5px 7px", color: "#4a5568" }}>
-                      {row.condition}
-                    </td>
-                    <td
-                      style={{
-                        padding: "5px 7px",
-                        color: GREEN,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {row.pct}%
-                    </td>
-                    <td
-                      style={{
-                        padding: "5px 7px",
-                        color: "#1A1A1A",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {formatINR((customer.salePrice * row.pct) / 100)}
-                    </td>
-                  </tr>
-                ))}
-                <tr style={{ background: GREEN }}>
-                  <td
-                    colSpan={3}
-                    style={{
-                      padding: "5px 7px",
-                      color: "#fff",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Total
-                  </td>
-                  <td
-                    style={{
-                      padding: "5px 7px",
-                      color: "#fff",
-                      fontWeight: 700,
-                    }}
-                  >
-                    100%
-                  </td>
-                  <td
-                    style={{
-                      padding: "5px 7px",
-                      color: "#fff",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {formatINR(customer.salePrice)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* Bank Details */}
             <div
               style={{
-                background: GREEN,
-                borderRadius: "6px",
-                padding: "8px 10px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "4px",
               }}
             >
-              <p
-                style={{
-                  color: "rgba(255,255,255,0.7)",
-                  fontSize: "8px",
-                  fontWeight: 700,
-                  letterSpacing: "1px",
-                  margin: "0 0 5px",
-                }}
-              >
-                BANK DETAILS
-              </p>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "4px",
-                }}
-              >
-                {[
-                  ["Bank Name", bank.bankName],
-                  ["Account Name", bank.accountName],
-                  ["Account No", bank.accountNo],
-                  ["IFSC Code", bank.ifscCode],
-                ].map(([k, v]) => (
-                  <div
-                    key={k}
+              {[
+                ["Bank Name", bank.bankName],
+                ["Account Name", bank.accountName],
+                ["Account No", bank.accountNo],
+                ["IFSC Code", bank.ifscCode],
+              ].map(([k, v]) => (
+                <div
+                  key={k}
+                  style={{
+                    borderBottom: "1px solid rgba(255,255,255,0.1)",
+                    paddingBottom: "3px",
+                  }}
+                >
+                  <span
                     style={{
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      paddingBottom: "3px",
+                      color: "rgba(255,255,255,0.6)",
+                      fontSize: "8px",
                     }}
                   >
-                    <span
-                      style={{
-                        color: "rgba(255,255,255,0.6)",
-                        fontSize: "8px",
-                      }}
-                    >
-                      {k}:{" "}
-                    </span>
-                    <span
-                      style={{
-                        color: "#fff",
-                        fontSize: "8px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {v}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                    {k}:{" "}
+                  </span>
+                  <span
+                    style={{
+                      color: "#fff",
+                      fontSize: "8px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {v}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -757,30 +709,39 @@ export default function InvoiceAndPayment({
             >
               UPI PAYMENT
             </p>
-            <div
-              style={{
-                width: "80px",
-                height: "80px",
-                margin: "0 auto 6px",
-                background: "#fff",
-                border: `2px solid ${GREEN}`,
-                borderRadius: "4px",
-                display: "grid",
-                gridTemplateColumns: "repeat(7,1fr)",
-                gap: "2px",
-                padding: "5px",
-              }}
-            >
-              {QR_CELLS.map((cell) => (
-                <div
-                  key={cell.id}
-                  style={{
-                    borderRadius: "1px",
-                    background: cell.on ? GREEN : "transparent",
-                  }}
-                />
-              ))}
-            </div>
+            {upiQrImage ? (
+              <img
+                src={upiQrImage}
+                alt="UPI QR Code"
+                style={{
+                  width: "90px",
+                  height: "90px",
+                  objectFit: "contain",
+                  borderRadius: "4px",
+                  display: "block",
+                  margin: "0 auto 6px",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "90px",
+                  height: "90px",
+                  margin: "0 auto 6px",
+                  background: "#f0f0f0",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "9px",
+                  color: "#999",
+                  textAlign: "center",
+                  padding: "4px",
+                }}
+              >
+                Upload QR in form
+              </div>
+            )}
             <p style={{ color: "#4a5568", fontSize: "8px", margin: "0 0 3px" }}>
               Scan to Pay via UPI
             </p>

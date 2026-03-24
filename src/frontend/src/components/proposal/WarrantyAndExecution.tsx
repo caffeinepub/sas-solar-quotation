@@ -63,55 +63,55 @@ export default function WarrantyAndExecution() {
     {
       phase: "Phase 2",
       activity: "System Design & Engineering",
-      duration: "Day 3-5",
+      duration: "Day 2-4",
       desc: "SLD, structural drawing, panel layout, BOM preparation.",
     },
     {
       phase: "Phase 3",
       activity: "Material Procurement",
-      duration: "Day 6-15",
+      duration: "Day 4-12",
       desc: "Ordering panels, inverter, structure, cables, BOS from approved vendors.",
     },
     {
       phase: "Phase 4",
       activity: "Civil & Structural Work",
-      duration: "Day 16-18",
+      duration: "Day 12-14",
       desc: "Roof preparation, cable routing, earthing pit, lightning arrester installation.",
     },
     {
       phase: "Phase 5",
       activity: "Solar Panel Installation",
-      duration: "Day 19-21",
+      duration: "Day 14-16",
       desc: "Mounting structure erection, panel fixing, DC cable routing & MC4 connectors.",
     },
     {
       phase: "Phase 6",
       activity: "Electrical Work & Wiring",
-      duration: "Day 22-24",
+      duration: "Day 16-18",
       desc: "Inverter installation, AC cable routing, DB board, earthing, SPD.",
     },
     {
       phase: "Phase 7",
       activity: "System Testing & Commissioning",
-      duration: "Day 25-26",
+      duration: "Day 18-20",
       desc: "OCV test, insulation test, polarity check, inverter config, performance verification.",
     },
     {
       phase: "Phase 8",
       activity: "Net Metering Application",
-      duration: "Day 27-35",
+      duration: "Day 20-25",
       desc: "DISCOM application, inspection, bidirectional meter installation.",
     },
     {
       phase: "Phase 9",
       activity: "PM Surya Ghar Registration",
-      duration: "Day 28-45",
+      duration: "Day 22-28",
       desc: "Portal registration, document submission, subsidy disbursement processing.",
     },
     {
       phase: "Phase 10",
       activity: "Handover & Customer Training",
-      duration: "Day 45",
+      duration: "Day 28-30",
       desc: "System handover, monitoring app setup, warranty docs, AMC signing.",
     },
   ];
@@ -451,7 +451,7 @@ export default function WarrantyAndExecution() {
               margin: 0,
             }}
           >
-            Total project completion: Approximately 45-60 days (subject to
+            Total project completion: Approximately 20-30 days (subject to
             DISCOM & government processing)
           </p>
           <div
@@ -466,7 +466,7 @@ export default function WarrantyAndExecution() {
                 margin: 0,
               }}
             >
-              45-60
+              20-30
             </p>
             <p
               style={{

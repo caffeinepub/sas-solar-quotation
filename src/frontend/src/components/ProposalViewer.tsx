@@ -1,6 +1,7 @@
 import type { BankDetails, CustomerData } from "../types";
 import { calculate } from "../utils/calculations";
 import AboutAndBenefits from "./proposal/AboutAndBenefits";
+import BillOfMaterial from "./proposal/BillOfMaterial";
 import CoverPage from "./proposal/CoverPage";
 import FinancialAndSpecs from "./proposal/FinancialAndSpecs";
 import InvoiceAndPayment from "./proposal/InvoiceAndPayment";
@@ -14,9 +15,15 @@ interface Props {
   customer: CustomerData;
   bank: BankDetails;
   onBack: () => void;
+  upiQrImage?: string;
 }
 
-export default function ProposalViewer({ customer, bank, onBack }: Props) {
+export default function ProposalViewer({
+  customer,
+  bank,
+  onBack,
+  upiQrImage,
+}: Props) {
   const calc = calculate(customer);
 
   return (
@@ -98,7 +105,12 @@ export default function ProposalViewer({ customer, bank, onBack }: Props) {
         <CoverPage customer={customer} />
         <AboutAndBenefits customer={customer} calc={calc} />
         <FinancialAndSpecs customer={customer} calc={calc} />
-        <InvoiceAndPayment customer={customer} bank={bank} />
+        <BillOfMaterial customer={customer} />
+        <InvoiceAndPayment
+          customer={customer}
+          bank={bank}
+          upiQrImage={upiQrImage}
+        />
         <WarrantyAndExecution />
         <ThanksPage />
       </div>

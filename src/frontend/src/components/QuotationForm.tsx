@@ -13,6 +13,10 @@ interface Props {
     bank: BankDetails,
     payment: PaymentScheduleData,
   ) => void;
+  onQrUpload: (dataUrl: string) => void;
+  upiQrImage: string;
+  onSave: (customer: CustomerData, bank: BankDetails) => void;
+  onViewSaved: () => void;
 }
 
 const defaultBank: BankDetails = {
@@ -46,6 +50,14 @@ function getQuotationNumber(): string {
   return `SAS-2026-${String(next).padStart(4, "0")}`;
 }
 
+function getSavedCount(): number {
+  try {
+    return JSON.parse(localStorage.getItem("sas_saved_quotes") || "[]").length;
+  } catch {
+    return 0;
+  }
+}
+
 const bankLabels: Record<keyof BankDetails, string> = {
   bankName: "Bank Name",
   accountName: "Account Name",
@@ -53,7 +65,13 @@ const bankLabels: Record<keyof BankDetails, string> = {
   ifscCode: "IFSC Code",
 };
 
-export default function QuotationForm({ onGenerate }: Props) {
+export default function QuotationForm({
+  onGenerate,
+  onQrUpload,
+  upiQrImage,
+  onSave,
+  onViewSaved,
+}: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [customer, setCustomer] = useState<CustomerData>({
     name: "",
@@ -72,6 +90,7 @@ export default function QuotationForm({ onGenerate }: Props) {
   });
   const [bank, setBank] = useState<BankDetails>(defaultBank);
   const [payment] = useState<PaymentScheduleData>(defaultPayment);
+  const [savedCount] = useState<number>(getSavedCount);
 
   const calc = calculate(customer);
 
@@ -93,20 +112,25 @@ export default function QuotationForm({ onGenerate }: Props) {
       alert("Please fill in customer name, capacity and project price.");
       return;
     }
+    onSave(customer, bank);
     onGenerate(customer, bank, payment);
   };
 
   const fieldClass =
     "w-full px-3 py-2 rounded-lg text-sm outline-none focus:ring-2 focus:ring-yellow-400";
+  // Fixed: added caretColor and ensured color is explicitly set to fix first-letter invisible bug
   const fieldStyle = {
     background: "rgba(255,255,255,0.07)",
     border: "1px solid rgba(212,175,55,0.3)",
-    color: "#fff",
+    color: "#ffffff",
+    caretColor: "#ffffff",
+    WebkitTextFillColor: "#ffffff",
   };
   const selectStyle = {
     background: "#1a2a45",
     border: "1px solid rgba(212,175,55,0.3)",
-    color: "#fff",
+    color: "#ffffff",
+    caretColor: "#ffffff",
   };
   const labelStyle = { color: "#a0b4c8" };
   const sectionStyle = {
@@ -167,17 +191,48 @@ export default function QuotationForm({ onGenerate }: Props) {
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            localStorage.removeItem("sas_auth");
-            window.location.reload();
-          }}
-          className="text-xs px-3 py-1 rounded"
-          style={{ border: "1px solid rgba(212,175,55,0.3)", color: "#a0aec0" }}
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            data-ocid="form.saved_quotations.button"
+            onClick={onViewSaved}
+            className="relative text-xs px-3 py-1.5 rounded-lg font-medium transition-all hover:opacity-80"
+            style={{
+              border: "1px solid rgba(212,175,55,0.5)",
+              color: "#D4AF37",
+              background: "rgba(212,175,55,0.08)",
+            }}
+          >
+            Saved Quotations
+            {savedCount > 0 && (
+              <span
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center rounded-full text-white"
+                style={{
+                  background: "#22c55e",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  lineHeight: 1,
+                }}
+              >
+                {savedCount > 99 ? "99+" : savedCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem("sas_auth");
+              window.location.reload();
+            }}
+            className="text-xs px-3 py-1 rounded"
+            style={{
+              border: "1px solid rgba(212,175,55,0.3)",
+              color: "#a0aec0",
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-6">
@@ -477,6 +532,67 @@ export default function QuotationForm({ onGenerate }: Props) {
           </div>
 
           <div>
+            {/* UPI QR Code Upload */}
+            <div style={sectionStyle}>
+              <h3
+                className="text-sm font-bold mb-4 tracking-wider"
+                style={{ color: "#FF6B35" }}
+              >
+                UPI QR CODE
+              </h3>
+              <p className="text-xs mb-3" style={{ color: "#a0b4c8" }}>
+                UPI QR code is permanently set. You can replace it by uploading
+                a new image (JPG/PNG).
+              </p>
+              <div className="flex items-center gap-3">
+                <input
+                  id="qr-upload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const result = ev.target?.result;
+                        if (typeof result === "string") onQrUpload(result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  data-ocid="form.qr.upload_button"
+                  onClick={() => document.getElementById("qr-upload")?.click()}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    background: "rgba(255,107,53,0.15)",
+                    border: "1px solid rgba(255,107,53,0.4)",
+                    color: "#FF6B35",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Replace QR Code
+                </button>
+                <img
+                  src={upiQrImage}
+                  alt="UPI QR Code"
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    objectFit: "contain",
+                    borderRadius: "4px",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                  }}
+                />
+              </div>
+            </div>
+
             {/* Payment Schedule - Fixed */}
             <div style={sectionStyle}>
               <h3

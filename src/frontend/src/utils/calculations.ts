@@ -16,6 +16,9 @@ export function calculateSubsidy(capacityKW: number): {
  * Other capacities interpolated proportionally at 4.5 units/kW/day
  */
 export function getDailyGeneration(capacityKW: number): number {
+  if (capacityKW === 2) return 9;
+  if (capacityKW === 3) return 13.5;
+  if (capacityKW === 5) return 22.5;
   return capacityKW * 4.5;
 }
 
