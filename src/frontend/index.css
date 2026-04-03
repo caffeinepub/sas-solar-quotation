@@ -82,7 +82,7 @@
   }
 }
 
-/* A4 Page Layout */
+/* A4 Page Layout - screen preview */
 .a4-page {
   width: 210mm;
   min-height: 297mm;
@@ -95,8 +95,9 @@
 
 /* Print CSS */
 @media print {
-  body {
+  html, body {
     margin: 0;
+    padding: 0;
     background: white !important;
   }
 
@@ -104,17 +105,27 @@
     display: none !important;
   }
 
+  /*
+   * KEY FIX: use height (not min-height) so each .a4-page is
+   * exactly 297mm tall. min-height causes the browser to render
+   * the element taller than one page, which triggers a blank
+   * extra page after page-break-after:always.
+   */
   .a4-page {
     width: 210mm;
-    min-height: 297mm;
+    height: 297mm;
+    overflow: hidden;
     page-break-after: always;
     break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
     padding: 15mm;
     box-sizing: border-box;
     background: white !important;
     color: #000;
     box-shadow: none;
     margin: 0;
+    display: block;
   }
 
   .a4-page:last-child {
