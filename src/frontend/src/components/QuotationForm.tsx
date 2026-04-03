@@ -65,6 +65,30 @@ const bankLabels: Record<keyof BankDetails, string> = {
   ifscCode: "IFSC Code",
 };
 
+// IMPORTANT: Field must be defined OUTSIDE QuotationForm to prevent
+// React from unmounting/remounting inputs on every keystroke (which
+// causes the "one letter then cursor disappears" bug).
+const LABEL_STYLE = { color: "#a0b4c8" };
+
+function Field({
+  id,
+  label,
+  children,
+}: { id: string; label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="block text-xs mb-1 font-medium"
+        style={LABEL_STYLE}
+      >
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
 export default function QuotationForm({
   onGenerate,
   onQrUpload,
@@ -86,7 +110,13 @@ export default function QuotationForm({
     date: today,
     panelBrand: "Tata Bifacial",
     panelWattage: 545,
-    inverterBrand: "Tata", // auto-set from brand map
+    inverterBrand: "Tata",
+    isChannelPartner: false,
+    channelPartnerName: "",
+    systemType: "ongrid",
+    batteryCapacityKWh: undefined,
+    batteryQuantity: 1,
+    batteryBackupKWh: undefined,
   });
   const [bank, setBank] = useState<BankDetails>(defaultBank);
   const [payment] = useState<PaymentScheduleData>(defaultPayment);
@@ -94,8 +124,10 @@ export default function QuotationForm({
 
   const calc = calculate(customer);
 
-  const updateCustomer = (field: keyof CustomerData, value: string | number) =>
-    setCustomer((prev) => ({ ...prev, [field]: value }));
+  const updateCustomer = (
+    field: keyof CustomerData,
+    value: string | number | boolean | undefined,
+  ) => setCustomer((prev) => ({ ...prev, [field]: value }));
   const updateBank = (field: keyof BankDetails, value: string) =>
     setBank((prev) => ({ ...prev, [field]: value }));
 
@@ -103,7 +135,27 @@ export default function QuotationForm({
     setCustomer((prev) => ({
       ...prev,
       panelBrand: brand,
-      inverterBrand: INVERTER_BRANDS[brand] || brand,
+      inverterBrand: INVERTER_BRANDS[brand] || brand.split(" ")[0],
+    }));
+  };
+
+  const handleSystemTypeChange = (type: "ongrid" | "hybrid" | "offgrid") => {
+    setCustomer((prev) => ({
+      ...prev,
+      systemType: type,
+      batteryCapacityKWh: type !== "ongrid" ? prev.capacity : undefined,
+      batteryBackupKWh: type !== "ongrid" ? prev.capacity : undefined,
+      batteryQuantity: type !== "ongrid" ? 1 : prev.batteryQuantity,
+    }));
+  };
+
+  const handleCapacityChange = (cap: number) => {
+    setCustomer((prev) => ({
+      ...prev,
+      capacity: cap,
+      batteryCapacityKWh: prev.systemType !== "ongrid" ? cap : undefined,
+      batteryBackupKWh:
+        prev.systemType !== "ongrid" ? cap : prev.batteryBackupKWh,
     }));
   };
 
@@ -112,27 +164,33 @@ export default function QuotationForm({
       alert("Please fill in customer name, capacity and project price.");
       return;
     }
-    onSave(customer, bank);
-    onGenerate(customer, bank, payment);
+    if (customer.isChannelPartner && !customer.channelPartnerName?.trim()) {
+      alert("Please enter the channel partner company name.");
+      return;
+    }
+    const effectiveSalePrice =
+      customer.salePrice +
+      (customer.capacity === 5 && customer.batteryBackupKWh === 10
+        ? 160000
+        : 0);
+    const customerToSave = { ...customer, salePrice: effectiveSalePrice };
+    onSave(customerToSave, bank);
+    onGenerate(customerToSave, bank, payment);
   };
 
   const fieldClass =
     "w-full px-3 py-2 rounded-lg text-sm outline-none focus:ring-2 focus:ring-yellow-400";
-  // Fixed: added caretColor and ensured color is explicitly set to fix first-letter invisible bug
   const fieldStyle = {
     background: "rgba(255,255,255,0.07)",
     border: "1px solid rgba(212,175,55,0.3)",
     color: "#ffffff",
     caretColor: "#ffffff",
-    WebkitTextFillColor: "#ffffff",
   };
   const selectStyle = {
     background: "#1a2a45",
     border: "1px solid rgba(212,175,55,0.3)",
     color: "#ffffff",
-    caretColor: "#ffffff",
   };
-  const labelStyle = { color: "#a0b4c8" };
   const sectionStyle = {
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(212,175,55,0.2)",
@@ -141,26 +199,47 @@ export default function QuotationForm({
     marginBottom: "16px",
   };
 
-  const Field = ({
-    id,
-    label,
-    children,
-  }: { id: string; label: string; children: React.ReactNode }) => (
-    <div>
-      <label
-        htmlFor={id}
-        className="block text-xs mb-1 font-medium"
-        style={labelStyle}
-      >
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-
   const advanceAmt = (customer.salePrice * 5) / 100;
   const preDispatchAmt = (customer.salePrice * 70) / 100;
   const afterInstallAmt = (customer.salePrice * 25) / 100;
+
+  const selectedBrandName = customer.panelBrand.split(" ")[0];
+  const inverterOptions = [selectedBrandName];
+
+  const isHybridOrOffGrid =
+    customer.systemType === "hybrid" || customer.systemType === "offgrid";
+  const batteryKWh = customer.batteryBackupKWh ?? customer.capacity;
+
+  // Effective price shown in live calculations
+  const effectiveSalePrice =
+    customer.salePrice +
+    (customer.capacity === 5 && customer.batteryBackupKWh === 10 ? 160000 : 0);
+  const hasBatteryUpgrade =
+    customer.capacity === 5 && customer.batteryBackupKWh === 10;
+
+  const systemTypeConfig: Record<
+    "ongrid" | "hybrid" | "offgrid",
+    { label: string; color: string; activeColor: string }
+  > = {
+    ongrid: { label: "On-Grid", color: "#22c55e", activeColor: "#22c55e" },
+    hybrid: { label: "Hybrid", color: "#3b82f6", activeColor: "#1A4FA0" },
+    offgrid: { label: "Off-Grid", color: "#f59e0b", activeColor: "#D97706" },
+  };
+
+  // Battery backup options for the selected capacity
+  const getBatteryBackupOptions = () => {
+    const cap = customer.capacity;
+    if (cap === 5) {
+      return [
+        { value: 5, label: "5 kWh (Standard)" },
+        { value: 10, label: "10 kWh (+₹1,60,000)" },
+      ];
+    }
+    return [{ value: cap, label: `${cap} kWh (Fixed)` }];
+  };
+
+  const backupOptions = getBatteryBackupOptions();
+  const isBackupFixed = backupOptions.length === 1;
 
   return (
     <div
@@ -318,6 +397,97 @@ export default function QuotationForm({
                     placeholder="e.g. 1234567890"
                   />
                 </Field>
+
+                {/* Channel Partner Toggle */}
+                <div
+                  style={{
+                    borderTop: "1px solid rgba(212,175,55,0.15)",
+                    paddingTop: "12px",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateCustomer(
+                          "isChannelPartner",
+                          !customer.isChannelPartner,
+                        )
+                      }
+                      style={{
+                        width: "40px",
+                        height: "22px",
+                        borderRadius: "11px",
+                        background: customer.isChannelPartner
+                          ? "#D4AF37"
+                          : "rgba(255,255,255,0.15)",
+                        border: "none",
+                        cursor: "pointer",
+                        position: "relative",
+                        transition: "background 0.2s",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "3px",
+                          left: customer.isChannelPartner ? "21px" : "3px",
+                          width: "16px",
+                          height: "16px",
+                          borderRadius: "50%",
+                          background: "#fff",
+                          transition: "left 0.2s",
+                        }}
+                      />
+                    </button>
+                    <span
+                      className="text-xs font-medium"
+                      style={{
+                        color: customer.isChannelPartner
+                          ? "#D4AF37"
+                          : "#a0b4c8",
+                      }}
+                    >
+                      This proposal is for a Channel Partner
+                    </span>
+                  </div>
+
+                  {customer.isChannelPartner && (
+                    <div className="mt-3">
+                      <Field
+                        id="cp-name"
+                        label="Channel Partner Company Name *"
+                      >
+                        <input
+                          id="cp-name"
+                          data-ocid="form.channel_partner_name.input"
+                          type="text"
+                          value={customer.channelPartnerName || ""}
+                          onChange={(e) =>
+                            updateCustomer("channelPartnerName", e.target.value)
+                          }
+                          className={fieldClass}
+                          style={fieldStyle}
+                          placeholder="e.g. S&Yes Consultant"
+                        />
+                      </Field>
+                      {customer.channelPartnerName?.trim() && (
+                        <div
+                          className="text-xs mt-2 px-3 py-2 rounded"
+                          style={{
+                            background: "rgba(212,175,55,0.08)",
+                            border: "1px solid rgba(212,175,55,0.25)",
+                            color: "#D4AF37",
+                          }}
+                        >
+                          ⭐ "{customer.channelPartnerName}" will appear as
+                          Official Channel Partner on pages 1 &amp; 7
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -330,6 +500,294 @@ export default function QuotationForm({
                 SYSTEM & PRICING
               </h3>
               <div className="space-y-3">
+                {/* System Type Toggle */}
+                <div>
+                  <p
+                    className="block text-xs mb-2 font-medium"
+                    style={LABEL_STYLE}
+                  >
+                    System Type *
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      border: "1px solid rgba(212,175,55,0.3)",
+                    }}
+                  >
+                    {(["ongrid", "hybrid", "offgrid"] as const).map((type) => {
+                      const cfg = systemTypeConfig[type];
+                      const isActive = customer.systemType === type;
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          data-ocid={`form.system_type_${type}.toggle`}
+                          onClick={() => handleSystemTypeChange(type)}
+                          style={{
+                            flex: 1,
+                            padding: "8px 4px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            border: "none",
+                            borderRight:
+                              type !== "offgrid"
+                                ? "1px solid rgba(212,175,55,0.3)"
+                                : "none",
+                            background: isActive
+                              ? cfg.activeColor
+                              : "rgba(255,255,255,0.03)",
+                            color: isActive ? "#fff" : "#a0b4c8",
+                            transition: "all 0.15s",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          {cfg.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Battery Info Box — shown only for Hybrid/Off-Grid */}
+                {isHybridOrOffGrid && (
+                  <div
+                    style={{
+                      background: "rgba(26,79,160,0.15)",
+                      border: "1px solid rgba(26,79,160,0.5)",
+                      borderRadius: "8px",
+                      padding: "10px 12px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        color: "#60a5fa",
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        letterSpacing: "1px",
+                        margin: "0 0 6px",
+                      }}
+                    >
+                      🔋 BATTERY STORAGE — LITHIUM ION
+                    </p>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "6px",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <div>
+                        <p
+                          style={{
+                            color: "#a0b4c8",
+                            fontSize: "9px",
+                            margin: "0 0 1px",
+                          }}
+                        >
+                          Battery Type
+                        </p>
+                        <p
+                          style={{
+                            color: "#93c5fd",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            margin: 0,
+                          }}
+                        >
+                          Lithium Ion (LiFePO4)
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            color: "#a0b4c8",
+                            fontSize: "9px",
+                            margin: "0 0 1px",
+                          }}
+                        >
+                          Capacity
+                        </p>
+                        <p
+                          style={{
+                            color: "#93c5fd",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            margin: 0,
+                          }}
+                        >
+                          {batteryKWh} kWh
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            color: "#a0b4c8",
+                            fontSize: "9px",
+                            margin: "0 0 1px",
+                          }}
+                        >
+                          Backup Duration
+                        </p>
+                        <p
+                          style={{
+                            color: "#93c5fd",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            margin: 0,
+                          }}
+                        >
+                          {batteryKWh >= customer.capacity
+                            ? `${batteryKWh / customer.capacity} Hour${batteryKWh / customer.capacity > 1 ? "s" : ""} @ ${customer.capacity}kW Load`
+                            : `1 Hour @ ${batteryKWh}kW Load`}
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            color: "#a0b4c8",
+                            fontSize: "9px",
+                            margin: "0 0 1px",
+                          }}
+                        >
+                          Warranty
+                        </p>
+                        <p
+                          style={{
+                            color: "#93c5fd",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            margin: 0,
+                          }}
+                        >
+                          5 Years
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        background: "rgba(26,79,160,0.25)",
+                        borderRadius: "5px",
+                        padding: "6px 8px",
+                        fontSize: "9px",
+                        color: "#bfdbfe",
+                        textAlign: "center",
+                        fontWeight: 600,
+                        marginBottom: "10px",
+                      }}
+                    >
+                      {customer.capacity}kW System → {batteryKWh}kWh Lithium Ion
+                      Battery →{" "}
+                      {batteryKWh >= customer.capacity
+                        ? `${batteryKWh / customer.capacity} Hour${batteryKWh / customer.capacity > 1 ? "s" : ""} Backup at ${customer.capacity}kW Load`
+                        : `1 Hour Backup at ${batteryKWh}kW Load`}
+                    </div>
+
+                    {/* Battery Quantity Dropdown */}
+                    <div style={{ marginBottom: "8px" }}>
+                      <label
+                        htmlFor="batt-qty"
+                        style={{
+                          color: "#a0b4c8",
+                          fontSize: "9px",
+                          display: "block",
+                          marginBottom: "4px",
+                          fontWeight: 600,
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        Battery Quantity
+                      </label>
+                      <select
+                        id="batt-qty"
+                        data-ocid="form.battery_quantity.select"
+                        value={customer.batteryQuantity ?? 1}
+                        onChange={(e) =>
+                          updateCustomer(
+                            "batteryQuantity",
+                            Number.parseInt(e.target.value),
+                          )
+                        }
+                        className={fieldClass}
+                        style={{
+                          ...selectStyle,
+                          fontSize: "11px",
+                          padding: "6px 10px",
+                        }}
+                      >
+                        {[1, 2, 3, 4].map((qty) => (
+                          <option key={qty} value={qty}>
+                            {qty} {qty === 1 ? "Battery" : "Batteries"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Battery Backup Dropdown */}
+                    <div>
+                      <label
+                        htmlFor="batt-backup"
+                        style={{
+                          color: "#a0b4c8",
+                          fontSize: "9px",
+                          display: "block",
+                          marginBottom: "4px",
+                          fontWeight: 600,
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        Battery Backup
+                      </label>
+                      <select
+                        id="batt-backup"
+                        data-ocid="form.battery_backup.select"
+                        value={customer.batteryBackupKWh ?? customer.capacity}
+                        disabled={isBackupFixed}
+                        onChange={(e) =>
+                          updateCustomer(
+                            "batteryBackupKWh",
+                            Number.parseInt(e.target.value),
+                          )
+                        }
+                        className={fieldClass}
+                        style={{
+                          ...selectStyle,
+                          fontSize: "11px",
+                          padding: "6px 10px",
+                          opacity: isBackupFixed ? 0.7 : 1,
+                          cursor: isBackupFixed ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        {backupOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      {hasBatteryUpgrade && (
+                        <div
+                          style={{
+                            marginTop: "6px",
+                            background: "rgba(212,175,55,0.12)",
+                            border: "1px solid rgba(212,175,55,0.4)",
+                            borderRadius: "5px",
+                            padding: "5px 8px",
+                            fontSize: "9px",
+                            color: "#D4AF37",
+                            fontWeight: 600,
+                          }}
+                        >
+                          ⚡ Extra 5kWh backup: +₹1,60,000 added to total price
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-3">
                   <Field id="sys-capacity" label="Solar Capacity (kW) *">
                     <select
@@ -337,10 +795,7 @@ export default function QuotationForm({
                       data-ocid="form.capacity.select"
                       value={customer.capacity}
                       onChange={(e) =>
-                        updateCustomer(
-                          "capacity",
-                          Number.parseInt(e.target.value),
-                        )
+                        handleCapacityChange(Number.parseInt(e.target.value))
                       }
                       className={fieldClass}
                       style={selectStyle}
@@ -435,7 +890,7 @@ export default function QuotationForm({
                     >
                       {PANEL_BRANDS.map((b) => (
                         <option key={b} value={b}>
-                          {b} Bifacial
+                          {b}
                         </option>
                       ))}
                     </select>
@@ -471,9 +926,9 @@ export default function QuotationForm({
                     className={fieldClass}
                     style={selectStyle}
                   >
-                    {PANEL_BRANDS.map((b) => (
+                    {inverterOptions.map((b) => (
                       <option key={b} value={b}>
-                        {b}
+                        {b} Inverter
                       </option>
                     ))}
                   </select>
@@ -716,6 +1171,27 @@ export default function QuotationForm({
                     </span>
                   </div>
                 ))}
+                {/* Battery upgrade price line */}
+                {hasBatteryUpgrade && (
+                  <div
+                    className="flex justify-between items-center py-1"
+                    style={{
+                      borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      borderTop: "1px solid rgba(212,175,55,0.2)",
+                      paddingTop: "6px",
+                    }}
+                  >
+                    <span className="text-xs" style={{ color: "#60a5fa" }}>
+                      Effective Price (with battery upgrade)
+                    </span>
+                    <span
+                      className="text-sm font-bold"
+                      style={{ color: "#60a5fa" }}
+                    >
+                      {formatINR(effectiveSalePrice)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

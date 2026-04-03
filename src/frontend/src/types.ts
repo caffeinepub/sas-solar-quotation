@@ -12,6 +12,12 @@ export interface CustomerData {
   panelBrand: string;
   panelWattage: number;
   inverterBrand: string;
+  isChannelPartner?: boolean;
+  channelPartnerName?: string;
+  systemType: "ongrid" | "hybrid" | "offgrid";
+  batteryCapacityKWh?: number;
+  batteryQuantity?: number;
+  batteryBackupKWh?: number;
 }
 
 export interface BankDetails {

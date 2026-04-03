@@ -11,17 +11,28 @@ export default function BillOfMaterial({
   const wattage = customer.panelWattage || 545;
   const panels = Math.ceil((kw * 1000) / wattage);
   const panelBrand = customer.panelBrand || "Tata Bifacial";
-  const inverterBrand = customer.inverterBrand || "Goodwe";
+  const inverterBrand = customer.inverterBrand || "Tata";
   const isThreePhase = kw > 5;
+
+  // Get brand name prefix (e.g. "Tata", "Waree", "Adani")
+  const brandName = panelBrand.split(" ")[0];
+
+  // Inverter options: always include selected brand first, then other common brands
+  const inverterOptions = [
+    brandName,
+    ...["Goodwe", "Xsolar", "Sofar Solar", "Growatt"].filter(
+      (b) => b.split(" ")[0] !== brandName,
+    ),
+  ];
 
   const bosList = [
     "DC Cables & Conduits: PolyCab / Star Cable / KEI Cable / Equivalent",
     "AC Cables: PolyCab / Star Cable / KEI Cable / Equivalent",
-    "DCDB: Tata Approved (Tata Supplied)",
-    "ACDB: Tata Approved (Tata Supplied)",
+    `DCDB: ${brandName} Approved (${brandName} Supplied)`,
+    `ACDB: ${brandName} Approved (${brandName} Supplied)`,
     "Termination Accessories: Reputed Brand",
     "Earthing (Pits, Strips & Cables): Reputed Make",
-    "Lightning Arrestor: Tata Approved (Tata Supplied)",
+    `Lightning Arrestor: ${brandName} Approved (${brandName} Supplied)`,
   ];
 
   return (
@@ -83,10 +94,10 @@ export default function BillOfMaterial({
           }}
         >
           <div style={{ fontWeight: 700, fontSize: "12px", color: BLUE }}>
-            TATA POWER
+            {brandName.toUpperCase()} SOLAR
           </div>
           <div style={{ fontSize: "10px", color: "#666" }}>
-            Tata Bifacial Solar Modules
+            {panelBrand} Solar Modules
           </div>
         </div>
       </div>
@@ -136,26 +147,28 @@ export default function BillOfMaterial({
             gap: "8px",
           }}
         >
-          {["Goodwe", "Xsolar", "Sofar Solar", "Growatt"].map((brand) => (
-            <div
-              key={brand}
-              style={{
-                padding: "8px",
-                background:
-                  brand === inverterBrand.split(" ")[0]
-                    ? `${GREEN}15`
-                    : "#f8fafc",
-                border: `1px solid ${brand === inverterBrand.split(" ")[0] ? GREEN : "#e2e8f0"}`,
-                borderRadius: "6px",
-                textAlign: "center",
-                fontSize: "10px",
-                fontWeight: 600,
-                color: brand === inverterBrand.split(" ")[0] ? GREEN : "#555",
-              }}
-            >
-              {brand}
-            </div>
-          ))}
+          {inverterOptions.map((brand) => {
+            const isSelected =
+              brand.split(" ")[0].toLowerCase() ===
+              inverterBrand.split(" ")[0].toLowerCase();
+            return (
+              <div
+                key={brand}
+                style={{
+                  padding: "8px",
+                  background: isSelected ? `${GREEN}15` : "#f8fafc",
+                  border: `1px solid ${isSelected ? GREEN : "#e2e8f0"}`,
+                  borderRadius: "6px",
+                  textAlign: "center",
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  color: isSelected ? GREEN : "#555",
+                }}
+              >
+                {brand}
+              </div>
+            );
+          })}
         </div>
       </div>
 

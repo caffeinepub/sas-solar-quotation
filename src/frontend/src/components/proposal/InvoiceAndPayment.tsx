@@ -24,7 +24,7 @@ interface LineItem {
   gstRate: number;
 }
 
-function computeItems(
+function computeItemsOnGrid(
   salePrice: number,
   kw: number,
   panelBrand = "Tata",
@@ -112,6 +112,22 @@ function computeItems(
   });
 }
 
+function computeItemsHybrid(salePrice: number, kw: number): LineItem[] {
+  // Single kit line item at 5% GST
+  const baseAmount = salePrice / 1.05;
+  return [
+    {
+      key: "kit",
+      desc: `${kw}kW Solar Hybrid Kit`,
+      hsn: "85414011",
+      qty: "1",
+      unit: "Set",
+      baseAmount,
+      gstRate: 5,
+    },
+  ];
+}
+
 export default function InvoiceAndPayment({
   customer,
   bank,
@@ -121,13 +137,19 @@ export default function InvoiceAndPayment({
   bank: BankDetails;
   upiQrImage?: string;
 }) {
-  const items = computeItems(
-    customer.salePrice,
-    customer.capacity,
-    customer.panelBrand,
-    customer.panelWattage,
-    customer.inverterBrand,
-  );
+  const isHybridOrOffGrid =
+    customer.systemType === "hybrid" || customer.systemType === "offgrid";
+
+  const items = isHybridOrOffGrid
+    ? computeItemsHybrid(customer.salePrice, customer.capacity)
+    : computeItemsOnGrid(
+        customer.salePrice,
+        customer.capacity,
+        customer.panelBrand,
+        customer.panelWattage,
+        customer.inverterBrand,
+      );
+
   const subtotal = items.reduce((s, item) => s + item.baseAmount, 0);
   const totalCGST = items.reduce(
     (s, item) => s + (item.baseAmount * item.gstRate) / 200,
@@ -141,7 +163,6 @@ export default function InvoiceAndPayment({
     year: "numeric",
   });
 
-  // Payment schedule: FIXED at 100% total
   const schedule = [
     {
       key: "advance",
@@ -161,6 +182,19 @@ export default function InvoiceAndPayment({
       condition: "After Successful Installation & Testing",
       pct: 25,
     },
+  ];
+
+  const tableHeaders = [
+    "#",
+    "Description",
+    "HSN/SAC",
+    "Qty",
+    "Unit",
+    "Base Amt (₹)",
+    "GST%",
+    "CGST (₹)",
+    "SGST (₹)",
+    "Total (₹)",
   ];
 
   return (
@@ -293,6 +327,23 @@ export default function InvoiceAndPayment({
                 {formatted}
               </p>
             </div>
+            {isHybridOrOffGrid && (
+              <div>
+                <p style={{ color: "#7a8898", fontSize: "8px", margin: 0 }}>
+                  System Type
+                </p>
+                <p
+                  style={{
+                    color: BLUE,
+                    fontWeight: 700,
+                    margin: 0,
+                    fontSize: "9px",
+                  }}
+                >
+                  {customer.systemType === "hybrid" ? "Hybrid" : "Off-Grid"}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -308,18 +359,7 @@ export default function InvoiceAndPayment({
       >
         <thead>
           <tr style={{ background: GREEN }}>
-            {[
-              "#",
-              "Description",
-              "HSN/SAC",
-              "Qty",
-              "Unit",
-              "Base Amt (₹)",
-              "GST%",
-              "CGST (₹)",
-              "SGST (₹)",
-              "Total (₹)",
-            ].map((h) => (
+            {tableHeaders.map((h) => (
               <th
                 key={h}
                 style={{
@@ -487,9 +527,29 @@ export default function InvoiceAndPayment({
         </span>
       </div>
 
+      {isHybridOrOffGrid && (
+        <div
+          style={{
+            background: "#E8F0FA",
+            border: `1px solid ${BLUE}`,
+            borderRadius: "4px",
+            padding: "5px 8px",
+            marginBottom: "8px",
+          }}
+        >
+          <span style={{ color: BLUE, fontSize: "8px", fontWeight: 700 }}>
+            ℹ️ Hybrid System Note:{" "}
+          </span>
+          <span style={{ color: "#1A1A1A", fontSize: "8px" }}>
+            This invoice covers the complete {customer.capacity}kW Solar Hybrid
+            Kit including solar panels, hybrid inverter, Lithium Ion battery (
+            {customer.capacity}kWh), mounting structure, wiring, and 5-year AMC.
+          </span>
+        </div>
+      )}
+
       {/* ─── PAYMENT SCHEDULE ─── */}
       <div style={{ borderTop: `2px solid ${BLUE}`, paddingTop: "8px" }}>
-        {/* Full-width: Payment Schedule label */}
         <p
           style={{
             color: BLUE,
@@ -502,7 +562,6 @@ export default function InvoiceAndPayment({
           PAYMENT SCHEDULE (100% Total)
         </p>
 
-        {/* Full-width: Payment schedule table */}
         <table
           style={{
             width: "100%",
@@ -769,10 +828,10 @@ export default function InvoiceAndPayment({
             lineHeight: "1.5",
           }}
         >
-          <strong>Note:</strong> GST rates: Solar PV Modules & Inverter @ 5%
-          (HSN 85414011, 85044090); Others @ 18%. All payments in favour of{" "}
-          {bank.accountName}. Cash payments above ₹20,000 not accepted as per IT
-          regulations.
+          <strong>Note:</strong>{" "}
+          {isHybridOrOffGrid
+            ? `GST @ 5% on complete ${customer.capacity}kW Solar Hybrid Kit (HSN 85414011). Includes panels, hybrid inverter, ${customer.capacity}kWh Lithium Ion battery, mounting, wiring & 5-Year AMC. GST Reg: ${COMPANY.gst} (Odisha, State Code 21).`
+            : `GST rates: Solar PV Modules & Inverter @ 5% (HSN 85414011, 85044090); Others @ 18%. All payments in favour of ${bank.accountName}. Cash payments above ₹20,000 not accepted as per IT regulations.`}
         </p>
       </div>
     </div>

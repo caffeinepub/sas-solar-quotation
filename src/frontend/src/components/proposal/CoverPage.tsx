@@ -18,6 +18,10 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
     month: "long",
     year: "numeric",
   });
+
+  const showPartner =
+    customer.isChannelPartner && customer.channelPartnerName?.trim();
+
   return (
     <div
       className="a4-page"
@@ -62,7 +66,6 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           >
             {COMPANY.name}
           </h1>
-          {/* Address directly below company name */}
           <p
             style={{
               color: "rgba(255,255,255,0.85)",
@@ -291,6 +294,53 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           </p>
         </div>
       </div>
+
+      {/* Channel Partner Badge — only shown when enabled */}
+      {showPartner && (
+        <div
+          style={{
+            background: "#FFF8E7",
+            borderTop: "2px solid #D4A017",
+            borderBottom: "2px solid #D4A017",
+            padding: "8px 40px",
+            flex: "0 0 auto",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontSize: "11px",
+              color: "#7a5c00",
+              fontWeight: 700,
+              letterSpacing: "0.5px",
+            }}
+          >
+            ⭐ OFFICIAL CHANNEL PARTNER
+          </p>
+          <p
+            style={{
+              margin: "3px 0 0",
+              fontSize: "13px",
+              color: "#1A1A1A",
+              fontWeight: 700,
+            }}
+          >
+            {customer.channelPartnerName}
+          </p>
+          <p
+            style={{
+              margin: "2px 0 0",
+              fontSize: "10px",
+              color: "#555",
+              letterSpacing: "0.3px",
+            }}
+          >
+            Officially Authorised Channel Partner of Shree Adishakti Solar Pvt
+            Ltd
+          </p>
+        </div>
+      )}
 
       {/* System Details — some space above bottom */}
       <div

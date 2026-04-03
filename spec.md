@@ -1,40 +1,42 @@
-# SAS Solar Quotation Generator
+# SAS Solar Quotation
 
 ## Current State
-- 9-page A4 proposal with dark navy + gold design
-- Pages: Cover, About Company, Solar Benefits, Financial Analysis, System Specs, Proforma Invoice, Payment Schedule, Warranty & AMC, Work Execution Plan
-- Login page with admin/sassolar123 credentials
-- Live calculation form
+
+The Hybrid/Off-Grid form section shows a static battery info box that auto-calculates backup from system capacity (e.g. 3kW = 3kWh = 1 hr at 3kW). There is no way for the user to select battery quantity or change the backup kWh. The `CustomerData` type has `batteryCapacityKWh?: number` but no quantity field. The `BatteryDetails` proposal page always uses `customer.capacity` for battery kWh.
 
 ## Requested Changes (Diff)
 
 ### Add
-- PM Surya Ghar Yojana project mention on Cover Page (Page 1)
-- New Thanks / Thank You page as the final page
-- Bottle green, white, and blue color scheme across the entire proposal and UI
+- `batteryQuantity?: number` field to `CustomerData` type (defaults to 1)
+- `batteryBackupKWh?: number` field to `CustomerData` type (separate from `batteryCapacityKWh`)
+- **Battery Quantity dropdown** in the form (visible only when Hybrid/Off-Grid is selected): options 1, 2, 3, 4 batteries
+- **Battery Backup dropdown** in the form (visible only when Hybrid/Off-Grid is selected):
+  - For **3kW system**: only one option — `3 kWh` (fixed, no choice)
+  - For **5kW system**: two options — `5 kWh` (default, no extra cost) and `10 kWh` (adds ₹1,60,000 to sale price automatically)
+  - For **all other system sizes**: fixed at `{capacity} kWh` (no choice, same as current)
+- When 10kWh is selected for 5kW system, auto-add ₹1,60,000 to the displayed sale price total and show a note explaining the upgrade cost
 
 ### Modify
-- Page 2: Merge About Company + Solar Benefits into a single A4 page
-- Page 3: Merge Financial Analysis + System Specifications into a single A4 page
-- Page 4: Merge Proforma Invoice + Payment Terms & Schedule into a single A4 page
-- Fix payment term percentage total to be 100% (not 105%)
-- Page 5: Merge Warranty & AMC + Work Execution Plan into a single A4 page
-- All pages: apply bottle green (#1B6B45), white (#FFFFFF), and blue (#1A4FA0) color palette replacing navy+gold theme
+- `BatteryDetails` proposal page: use `customer.batteryBackupKWh ?? customer.capacity` for kWh values shown in specs and backup calculation, and show battery quantity if > 1
+- `handleSystemTypeChange` and `handleCapacityChange` in QuotationForm: initialize `batteryBackupKWh` to `capacity` and `batteryQuantity` to 1 when switching to Hybrid/Off-Grid
+- Battery info box in form: show selected quantity and backup kWh
+- Sale price field: when 5kW system + 10kWh backup selected, the base sale price should remain what user entered, but the total/final price shown should include the ₹1,60,000 surcharge; pass adjusted price through to the proposal
 
 ### Remove
-- Old navy and gold color references
-- Separate Solar Benefits page (merged into Page 2)
-- Separate System Specs page (merged into Page 3)
-- Separate Payment Schedule page (merged into Page 4)
-- Separate Work Execution Plan page (merged into Page 5)
+- Nothing removed
 
 ## Implementation Plan
-1. Update index.css and tailwind config with bottle green + blue + white tokens
-2. Update CoverPage.tsx: add PM Surya Ghar Yojana section, new color scheme
-3. Merge AboutCompany.tsx + SolarBenefits.tsx into one component (Page 2)
-4. Merge FinancialAnalysis.tsx + SystemSpecs.tsx into one component (Page 3)
-5. Merge ProformaInvoice.tsx + PaymentSchedule.tsx into one component (Page 4), fix payment percentages to sum to 100%
-6. Merge WarrantyAMC.tsx + WorkExecution.tsx into one component (Page 5)
-7. Create new ThanksPage.tsx component (Page 6)
-8. Update App.tsx / proposal rendering to use new 6-page structure
-9. Update LoginPage.tsx and QuotationForm.tsx with new color scheme
+
+1. **types.ts**: Add `batteryQuantity?: number` and `batteryBackupKWh?: number` to `CustomerData`
+2. **QuotationForm.tsx**:
+   - In `handleSystemTypeChange`: set `batteryBackupKWh: cap, batteryQuantity: 1` when non-ongrid
+   - In `handleCapacityChange`: reset `batteryBackupKWh` to new capacity (unless user has manually chosen upgrade, in which case reset on capacity change)
+   - Add Battery Quantity dropdown (1–4) inside the Hybrid/Off-Grid battery info section
+   - Add Battery Backup dropdown:
+     - 3kW: single option `3 kWh` (disabled/fixed)
+     - 5kW: options `5 kWh` (base) and `10 kWh` (+₹1,60,000)
+     - Other: single option `{capacity} kWh` (fixed)
+   - When 5kW + 10kWh selected: show upgrade note "Extra 5kWh backup: +₹1,60,000 added to price"
+   - Effective sale price passed to `onGenerate` = base salePrice + (5kW && 10kWh ? 160000 : 0)
+3. **BatteryDetails.tsx**: Use `customer.batteryBackupKWh ?? customer.capacity` for kWh. Show `{quantity}x` battery label if quantity > 1.
+4. **ProformaInvoice.tsx** (if needed): reflect updated sale price for 5kW+10kWh

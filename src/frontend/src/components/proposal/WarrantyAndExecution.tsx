@@ -3,7 +3,13 @@ import PageHeader from "./PageHeader";
 const GREEN = "#1B6B45";
 const BLUE = "#1A4FA0";
 
-export default function WarrantyAndExecution() {
+interface Props {
+  systemType?: string;
+}
+
+export default function WarrantyAndExecution({ systemType }: Props) {
+  const isHybridOrOffGrid = systemType === "hybrid" || systemType === "offgrid";
+
   const warranties = [
     {
       component: "Solar PV Modules",
@@ -11,6 +17,7 @@ export default function WarrantyAndExecution() {
       duration: "25 Years",
       detail: "Min 80% output at 25 years",
       icon: "☀️",
+      hybridBadge: null,
     },
     {
       component: "Solar Inverter",
@@ -18,6 +25,7 @@ export default function WarrantyAndExecution() {
       duration: "7 Years",
       detail: "Full replacement by manufacturer",
       icon: "⚡",
+      hybridBadge: null,
     },
     {
       component: "Mounting Structure",
@@ -25,6 +33,7 @@ export default function WarrantyAndExecution() {
       duration: "5 Years",
       detail: "Against rust, corrosion & failure",
       icon: "🛠️",
+      hybridBadge: null,
     },
     {
       component: "Installation Work",
@@ -32,13 +41,31 @@ export default function WarrantyAndExecution() {
       duration: "5 Years",
       detail: "Against installation defects",
       icon: "🔧",
+      hybridBadge: null,
     },
+    ...(isHybridOrOffGrid
+      ? [
+          {
+            component: "Lithium Ion Battery",
+            type: "Battery Warranty",
+            duration: "5 Years",
+            detail: "Cell balancing & BMS protection included",
+            icon: "🔋",
+            hybridBadge: "BATTERY",
+          },
+        ]
+      : []),
     {
       component: "AMC Services",
-      type: "Annual Maintenance Contract",
+      type: isHybridOrOffGrid
+        ? "Hybrid System AMC"
+        : "Annual Maintenance Contract",
       duration: "5 Years",
-      detail: "Comprehensive maintenance included",
+      detail: isHybridOrOffGrid
+        ? "Comprehensive Hybrid System Maintenance"
+        : "Comprehensive maintenance included",
       icon: "📋",
+      hybridBadge: isHybridOrOffGrid ? "HYBRID AMC" : null,
     },
   ];
 
@@ -51,6 +78,9 @@ export default function WarrantyAndExecution() {
     "Generation report and savings statement",
     "Priority customer support (response within 48 hours)",
     "Minor repairs and replacement of minor components",
+    ...(isHybridOrOffGrid
+      ? ["Battery health check and cell balancing (quarterly)"]
+      : []),
   ];
 
   const phases = [
@@ -185,18 +215,36 @@ export default function WarrantyAndExecution() {
               </td>
               <td style={{ padding: "5px 8px", color: "#4a5568" }}>{w.type}</td>
               <td style={{ padding: "5px 8px" }}>
-                <span
-                  style={{
-                    background: GREEN,
-                    color: "#fff",
-                    padding: "2px 8px",
-                    borderRadius: "20px",
-                    fontSize: "10px",
-                    fontWeight: 700,
-                  }}
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "5px" }}
                 >
-                  {w.duration}
-                </span>
+                  <span
+                    style={{
+                      background: GREEN,
+                      color: "#fff",
+                      padding: "2px 8px",
+                      borderRadius: "20px",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {w.duration}
+                  </span>
+                  {w.hybridBadge && (
+                    <span
+                      style={{
+                        background: BLUE,
+                        color: "#fff",
+                        padding: "2px 6px",
+                        borderRadius: "20px",
+                        fontSize: "8px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {w.hybridBadge}
+                    </span>
+                  )}
+                </div>
               </td>
               <td
                 style={{
@@ -234,6 +282,20 @@ export default function WarrantyAndExecution() {
             }}
           >
             AMC SERVICES INCLUDED
+            {isHybridOrOffGrid && (
+              <span
+                style={{
+                  marginLeft: "6px",
+                  background: BLUE,
+                  color: "#fff",
+                  padding: "1px 5px",
+                  borderRadius: "10px",
+                  fontSize: "8px",
+                }}
+              >
+                HYBRID
+              </span>
+            )}
           </p>
           <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
             {amcServices.map((s) => (

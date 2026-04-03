@@ -1,3 +1,5 @@
+import type { CustomerData } from "../../types";
+
 const GREEN = "#1B6B45";
 const BLUE = "#1A4FA0";
 
@@ -11,7 +13,10 @@ const COMPANY = {
   gst: "21ABSCS6348D1Z7",
 };
 
-export default function ThanksPage() {
+export default function ThanksPage({ customer }: { customer?: CustomerData }) {
+  const showPartner =
+    customer?.isChannelPartner && customer?.channelPartnerName?.trim();
+
   return (
     <div
       className="a4-page"
@@ -146,7 +151,7 @@ export default function ThanksPage() {
             background: `linear-gradient(135deg, ${GREEN}, ${BLUE})`,
             borderRadius: "12px",
             padding: "18px 36px",
-            marginBottom: "32px",
+            marginBottom: "28px",
           }}
         >
           <p
@@ -162,6 +167,48 @@ export default function ThanksPage() {
             ☀️ Bright Power for Better Future ☀️
           </p>
         </div>
+
+        {/* Channel Partner Badge — only shown when enabled */}
+        {showPartner && (
+          <div
+            style={{
+              background: "#FFF8E7",
+              border: "2px solid #D4A017",
+              borderRadius: "10px",
+              padding: "14px 32px",
+              marginBottom: "28px",
+              minWidth: "320px",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                fontSize: "11px",
+                color: "#7a5c00",
+                fontWeight: 700,
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+              }}
+            >
+              ⭐ Official Channel Partner
+            </p>
+            <p
+              style={{
+                margin: "6px 0 2px",
+                fontSize: "16px",
+                color: "#1A1A1A",
+                fontWeight: 700,
+                fontFamily: "Georgia, serif",
+              }}
+            >
+              {customer?.channelPartnerName}
+            </p>
+            <p style={{ margin: 0, fontSize: "11px", color: "#555" }}>
+              Officially Authorised Channel Partner of Shree Adishakti Solar Pvt
+              Ltd
+            </p>
+          </div>
+        )}
 
         {/* Contact cards */}
         <div

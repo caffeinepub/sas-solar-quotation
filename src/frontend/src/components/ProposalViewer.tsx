@@ -1,6 +1,7 @@
 import type { BankDetails, CustomerData } from "../types";
 import { calculate } from "../utils/calculations";
 import AboutAndBenefits from "./proposal/AboutAndBenefits";
+import BatteryDetails from "./proposal/BatteryDetails";
 import BillOfMaterial from "./proposal/BillOfMaterial";
 import CoverPage from "./proposal/CoverPage";
 import FinancialAndSpecs from "./proposal/FinancialAndSpecs";
@@ -25,6 +26,8 @@ export default function ProposalViewer({
   upiQrImage,
 }: Props) {
   const calc = calculate(customer);
+  const isHybridOrOffGrid =
+    customer.systemType === "hybrid" || customer.systemType === "offgrid";
 
   return (
     <div style={{ background: "#E8F5EE", minHeight: "100vh" }}>
@@ -61,6 +64,21 @@ export default function ProposalViewer({
             </div>
             <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "11px" }}>
               {customer.name} - {customer.quotationNumber}
+              {isHybridOrOffGrid && (
+                <span
+                  style={{
+                    marginLeft: "8px",
+                    background: BLUE,
+                    color: "#fff",
+                    fontSize: "9px",
+                    padding: "1px 6px",
+                    borderRadius: "10px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {customer.systemType === "hybrid" ? "HYBRID" : "OFF-GRID"}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -106,13 +124,14 @@ export default function ProposalViewer({
         <AboutAndBenefits customer={customer} calc={calc} />
         <FinancialAndSpecs customer={customer} calc={calc} />
         <BillOfMaterial customer={customer} />
+        {isHybridOrOffGrid && <BatteryDetails customer={customer} />}
         <InvoiceAndPayment
           customer={customer}
           bank={bank}
           upiQrImage={upiQrImage}
         />
-        <WarrantyAndExecution />
-        <ThanksPage />
+        <WarrantyAndExecution systemType={customer.systemType} />
+        <ThanksPage customer={customer} />
       </div>
     </div>
   );
