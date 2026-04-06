@@ -43,19 +43,13 @@ const INVERTER_BRANDS: Record<string, string> = {
   "Adani Bifacial": "Adani",
 };
 
+const LEAD_ACID_CAPACITIES_AH = [100, 150, 200, 250, 300, 350, 400, 500];
+
 function getQuotationNumber(): string {
   const stored = localStorage.getItem("sas_quote_counter");
   const next = stored ? Number.parseInt(stored) + 1 : 1;
   localStorage.setItem("sas_quote_counter", String(next));
   return `SAS-2026-${String(next).padStart(4, "0")}`;
-}
-
-function getSavedCount(): number {
-  try {
-    return JSON.parse(localStorage.getItem("sas_saved_quotes") || "[]").length;
-  } catch {
-    return 0;
-  }
 }
 
 const bankLabels: Record<keyof BankDetails, string> = {
@@ -117,10 +111,11 @@ export default function QuotationForm({
     batteryCapacityKWh: undefined,
     batteryQuantity: 1,
     batteryBackupKWh: undefined,
+    batteryType: "lithium",
+    leadAcidCapacityAH: 150,
   });
   const [bank, setBank] = useState<BankDetails>(defaultBank);
   const [payment] = useState<PaymentScheduleData>(defaultPayment);
-  const [savedCount] = useState<number>(getSavedCount);
 
   const calc = calculate(customer);
 
@@ -146,6 +141,8 @@ export default function QuotationForm({
       batteryCapacityKWh: type !== "ongrid" ? prev.capacity : undefined,
       batteryBackupKWh: type !== "ongrid" ? prev.capacity : undefined,
       batteryQuantity: type !== "ongrid" ? 1 : prev.batteryQuantity,
+      // Hybrid always uses lithium; offgrid keeps existing selection (default lithium)
+      batteryType: type === "hybrid" ? "lithium" : prev.batteryType,
     }));
   };
 
@@ -156,6 +153,13 @@ export default function QuotationForm({
       batteryCapacityKWh: prev.systemType !== "ongrid" ? cap : undefined,
       batteryBackupKWh:
         prev.systemType !== "ongrid" ? cap : prev.batteryBackupKWh,
+    }));
+  };
+
+  const handleBatteryTypeChange = (type: "lithium" | "lead_acid") => {
+    setCustomer((prev) => ({
+      ...prev,
+      batteryType: type,
     }));
   };
 
@@ -208,6 +212,8 @@ export default function QuotationForm({
 
   const isHybridOrOffGrid =
     customer.systemType === "hybrid" || customer.systemType === "offgrid";
+  const isOffGrid = customer.systemType === "offgrid";
+  const isLeadAcid = isOffGrid && customer.batteryType === "lead_acid";
   const batteryKWh = customer.batteryBackupKWh ?? customer.capacity;
 
   // Effective price shown in live calculations
@@ -240,6 +246,9 @@ export default function QuotationForm({
 
   const backupOptions = getBatteryBackupOptions();
   const isBackupFixed = backupOptions.length === 1;
+
+  const leadAcidAH = customer.leadAcidCapacityAH ?? 150;
+  const leadAcidQty = customer.batteryQuantity ?? 1;
 
   return (
     <div
@@ -283,19 +292,6 @@ export default function QuotationForm({
             }}
           >
             Saved Quotations
-            {savedCount > 0 && (
-              <span
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center rounded-full text-white"
-                style={{
-                  background: "#22c55e",
-                  fontSize: "9px",
-                  fontWeight: 700,
-                  lineHeight: 1,
-                }}
-              >
-                {savedCount > 99 ? "99+" : savedCount}
-              </span>
-            )}
           </button>
           <button
             type="button"
@@ -556,235 +552,515 @@ export default function QuotationForm({
                 {isHybridOrOffGrid && (
                   <div
                     style={{
-                      background: "rgba(26,79,160,0.15)",
-                      border: "1px solid rgba(26,79,160,0.5)",
+                      background: isLeadAcid
+                        ? "rgba(180,83,9,0.12)"
+                        : "rgba(26,79,160,0.15)",
+                      border: isLeadAcid
+                        ? "1px solid rgba(180,83,9,0.45)"
+                        : "1px solid rgba(26,79,160,0.5)",
                       borderRadius: "8px",
                       padding: "10px 12px",
                     }}
                   >
-                    <p
-                      style={{
-                        color: "#60a5fa",
-                        fontSize: "9px",
-                        fontWeight: 700,
-                        letterSpacing: "1px",
-                        margin: "0 0 6px",
-                      }}
-                    >
-                      🔋 BATTERY STORAGE — LITHIUM ION
-                    </p>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "6px",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      <div>
+                    {/* Battery Type Toggle — only for Off-Grid */}
+                    {isOffGrid && (
+                      <div style={{ marginBottom: "10px" }}>
                         <p
                           style={{
                             color: "#a0b4c8",
                             fontSize: "9px",
-                            margin: "0 0 1px",
-                          }}
-                        >
-                          Battery Type
-                        </p>
-                        <p
-                          style={{
-                            color: "#93c5fd",
-                            fontSize: "10px",
                             fontWeight: 700,
-                            margin: 0,
+                            letterSpacing: "0.5px",
+                            margin: "0 0 5px",
                           }}
                         >
-                          Lithium Ion (LiFePO4)
+                          BATTERY TYPE
                         </p>
-                      </div>
-                      <div>
-                        <p
-                          style={{
-                            color: "#a0b4c8",
-                            fontSize: "9px",
-                            margin: "0 0 1px",
-                          }}
-                        >
-                          Capacity
-                        </p>
-                        <p
-                          style={{
-                            color: "#93c5fd",
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            margin: 0,
-                          }}
-                        >
-                          {batteryKWh} kWh
-                        </p>
-                      </div>
-                      <div>
-                        <p
-                          style={{
-                            color: "#a0b4c8",
-                            fontSize: "9px",
-                            margin: "0 0 1px",
-                          }}
-                        >
-                          Backup Duration
-                        </p>
-                        <p
-                          style={{
-                            color: "#93c5fd",
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            margin: 0,
-                          }}
-                        >
-                          {batteryKWh >= customer.capacity
-                            ? `${batteryKWh / customer.capacity} Hour${batteryKWh / customer.capacity > 1 ? "s" : ""} @ ${customer.capacity}kW Load`
-                            : `1 Hour @ ${batteryKWh}kW Load`}
-                        </p>
-                      </div>
-                      <div>
-                        <p
-                          style={{
-                            color: "#a0b4c8",
-                            fontSize: "9px",
-                            margin: "0 0 1px",
-                          }}
-                        >
-                          Warranty
-                        </p>
-                        <p
-                          style={{
-                            color: "#93c5fd",
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            margin: 0,
-                          }}
-                        >
-                          5 Years
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        background: "rgba(26,79,160,0.25)",
-                        borderRadius: "5px",
-                        padding: "6px 8px",
-                        fontSize: "9px",
-                        color: "#bfdbfe",
-                        textAlign: "center",
-                        fontWeight: 600,
-                        marginBottom: "10px",
-                      }}
-                    >
-                      {customer.capacity}kW System → {batteryKWh}kWh Lithium Ion
-                      Battery →{" "}
-                      {batteryKWh >= customer.capacity
-                        ? `${batteryKWh / customer.capacity} Hour${batteryKWh / customer.capacity > 1 ? "s" : ""} Backup at ${customer.capacity}kW Load`
-                        : `1 Hour Backup at ${batteryKWh}kW Load`}
-                    </div>
-
-                    {/* Battery Quantity Dropdown */}
-                    <div style={{ marginBottom: "8px" }}>
-                      <label
-                        htmlFor="batt-qty"
-                        style={{
-                          color: "#a0b4c8",
-                          fontSize: "9px",
-                          display: "block",
-                          marginBottom: "4px",
-                          fontWeight: 600,
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        Battery Quantity
-                      </label>
-                      <select
-                        id="batt-qty"
-                        data-ocid="form.battery_quantity.select"
-                        value={customer.batteryQuantity ?? 1}
-                        onChange={(e) =>
-                          updateCustomer(
-                            "batteryQuantity",
-                            Number.parseInt(e.target.value),
-                          )
-                        }
-                        className={fieldClass}
-                        style={{
-                          ...selectStyle,
-                          fontSize: "11px",
-                          padding: "6px 10px",
-                        }}
-                      >
-                        {[1, 2, 3, 4].map((qty) => (
-                          <option key={qty} value={qty}>
-                            {qty} {qty === 1 ? "Battery" : "Batteries"}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Battery Backup Dropdown */}
-                    <div>
-                      <label
-                        htmlFor="batt-backup"
-                        style={{
-                          color: "#a0b4c8",
-                          fontSize: "9px",
-                          display: "block",
-                          marginBottom: "4px",
-                          fontWeight: 600,
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        Battery Backup
-                      </label>
-                      <select
-                        id="batt-backup"
-                        data-ocid="form.battery_backup.select"
-                        value={customer.batteryBackupKWh ?? customer.capacity}
-                        disabled={isBackupFixed}
-                        onChange={(e) =>
-                          updateCustomer(
-                            "batteryBackupKWh",
-                            Number.parseInt(e.target.value),
-                          )
-                        }
-                        className={fieldClass}
-                        style={{
-                          ...selectStyle,
-                          fontSize: "11px",
-                          padding: "6px 10px",
-                          opacity: isBackupFixed ? 0.7 : 1,
-                          cursor: isBackupFixed ? "not-allowed" : "pointer",
-                        }}
-                      >
-                        {backupOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      {hasBatteryUpgrade && (
                         <div
                           style={{
-                            marginTop: "6px",
-                            background: "rgba(212,175,55,0.12)",
-                            border: "1px solid rgba(212,175,55,0.4)",
+                            display: "flex",
+                            gap: "0",
+                            borderRadius: "6px",
+                            overflow: "hidden",
+                            border: "1px solid rgba(212,175,55,0.3)",
+                          }}
+                        >
+                          {(["lithium", "lead_acid"] as const).map((btype) => {
+                            const isActive = customer.batteryType === btype;
+                            const label =
+                              btype === "lithium" ? "Lithium Ion" : "Lead Acid";
+                            return (
+                              <button
+                                key={btype}
+                                type="button"
+                                data-ocid={`form.battery_type_${btype}.toggle`}
+                                onClick={() => handleBatteryTypeChange(btype)}
+                                style={{
+                                  flex: 1,
+                                  padding: "7px 6px",
+                                  fontSize: "11px",
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                  border: "none",
+                                  borderRight:
+                                    btype === "lithium"
+                                      ? "1px solid rgba(212,175,55,0.3)"
+                                      : "none",
+                                  background: isActive
+                                    ? btype === "lithium"
+                                      ? "#1A4FA0"
+                                      : "#92400e"
+                                    : "rgba(255,255,255,0.03)",
+                                  color: isActive ? "#fff" : "#a0b4c8",
+                                  transition: "all 0.15s",
+                                  letterSpacing: "0.5px",
+                                }}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lead Acid UI */}
+                    {isLeadAcid ? (
+                      <>
+                        <p
+                          style={{
+                            color: "#fb923c",
+                            fontSize: "9px",
+                            fontWeight: 700,
+                            letterSpacing: "1px",
+                            margin: "0 0 6px",
+                          }}
+                        >
+                          🔋 BATTERY STORAGE — LEAD ACID
+                        </p>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "6px",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Battery Type
+                            </p>
+                            <p
+                              style={{
+                                color: "#fdba74",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              Lead Acid (Tubular/VRLA)
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Capacity Per Battery
+                            </p>
+                            <p
+                              style={{
+                                color: "#fdba74",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              {leadAcidAH} AH
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Quantity
+                            </p>
+                            <p
+                              style={{
+                                color: "#fdba74",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              {leadAcidQty}{" "}
+                              {leadAcidQty === 1 ? "Battery" : "Batteries"}
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Total Capacity
+                            </p>
+                            <p
+                              style={{
+                                color: "#fdba74",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              {leadAcidAH * leadAcidQty} AH @ {leadAcidQty * 12}
+                              V
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            background: "rgba(180,83,9,0.2)",
                             borderRadius: "5px",
                             padding: "5px 8px",
                             fontSize: "9px",
-                            color: "#D4AF37",
+                            color: "#fed7aa",
+                            textAlign: "center",
                             fontWeight: 600,
+                            marginBottom: "10px",
                           }}
                         >
-                          ⚡ Extra 5kWh backup: +₹1,60,000 added to total price
+                          {leadAcidQty}x {leadAcidAH}AH Lead Acid @ 12V each →
+                          Total {leadAcidAH * leadAcidQty}AH /{" "}
+                          {leadAcidQty * 12}V Bank
                         </div>
-                      )}
-                    </div>
+
+                        {/* Lead Acid Capacity Dropdown */}
+                        <div style={{ marginBottom: "8px" }}>
+                          <label
+                            htmlFor="la-capacity"
+                            style={{
+                              color: "#a0b4c8",
+                              fontSize: "9px",
+                              display: "block",
+                              marginBottom: "4px",
+                              fontWeight: 600,
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            Battery Capacity (AH)
+                          </label>
+                          <select
+                            id="la-capacity"
+                            data-ocid="form.lead_acid_capacity.select"
+                            value={customer.leadAcidCapacityAH ?? 150}
+                            onChange={(e) =>
+                              updateCustomer(
+                                "leadAcidCapacityAH",
+                                Number.parseInt(e.target.value),
+                              )
+                            }
+                            className={fieldClass}
+                            style={{
+                              ...selectStyle,
+                              fontSize: "11px",
+                              padding: "6px 10px",
+                            }}
+                          >
+                            {LEAD_ACID_CAPACITIES_AH.map((ah) => (
+                              <option key={ah} value={ah}>
+                                {ah} AH
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Battery Quantity Dropdown (Lead Acid) */}
+                        <div>
+                          <label
+                            htmlFor="la-qty"
+                            style={{
+                              color: "#a0b4c8",
+                              fontSize: "9px",
+                              display: "block",
+                              marginBottom: "4px",
+                              fontWeight: 600,
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            Battery Quantity
+                          </label>
+                          <select
+                            id="la-qty"
+                            data-ocid="form.battery_quantity.select"
+                            value={customer.batteryQuantity ?? 1}
+                            onChange={(e) =>
+                              updateCustomer(
+                                "batteryQuantity",
+                                Number.parseInt(e.target.value),
+                              )
+                            }
+                            className={fieldClass}
+                            style={{
+                              ...selectStyle,
+                              fontSize: "11px",
+                              padding: "6px 10px",
+                            }}
+                          >
+                            {[1, 2, 3, 4].map((qty) => (
+                              <option key={qty} value={qty}>
+                                {qty} {qty === 1 ? "Battery" : "Batteries"}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    ) : (
+                      /* Lithium Ion UI (unchanged) */
+                      <>
+                        <p
+                          style={{
+                            color: "#60a5fa",
+                            fontSize: "9px",
+                            fontWeight: 700,
+                            letterSpacing: "1px",
+                            margin: "0 0 6px",
+                          }}
+                        >
+                          🔋 BATTERY STORAGE — LITHIUM ION
+                        </p>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "6px",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Battery Type
+                            </p>
+                            <p
+                              style={{
+                                color: "#93c5fd",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              Lithium Ion (LiFePO4)
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Capacity
+                            </p>
+                            <p
+                              style={{
+                                color: "#93c5fd",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              {batteryKWh} kWh
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Backup Duration
+                            </p>
+                            <p
+                              style={{
+                                color: "#93c5fd",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              {batteryKWh >= customer.capacity
+                                ? `${batteryKWh / customer.capacity} Hour${batteryKWh / customer.capacity > 1 ? "s" : ""} @ ${customer.capacity}kW Load`
+                                : `1 Hour @ ${batteryKWh}kW Load`}
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                color: "#a0b4c8",
+                                fontSize: "9px",
+                                margin: "0 0 1px",
+                              }}
+                            >
+                              Warranty
+                            </p>
+                            <p
+                              style={{
+                                color: "#93c5fd",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                margin: 0,
+                              }}
+                            >
+                              5 Years
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            background: "rgba(26,79,160,0.25)",
+                            borderRadius: "5px",
+                            padding: "6px 8px",
+                            fontSize: "9px",
+                            color: "#bfdbfe",
+                            textAlign: "center",
+                            fontWeight: 600,
+                            marginBottom: "10px",
+                          }}
+                        >
+                          {customer.capacity}kW System → {batteryKWh}kWh Lithium
+                          Ion Battery →{" "}
+                          {batteryKWh >= customer.capacity
+                            ? `${batteryKWh / customer.capacity} Hour${batteryKWh / customer.capacity > 1 ? "s" : ""} Backup at ${customer.capacity}kW Load`
+                            : `1 Hour Backup at ${batteryKWh}kW Load`}
+                        </div>
+
+                        {/* Battery Quantity Dropdown */}
+                        <div style={{ marginBottom: "8px" }}>
+                          <label
+                            htmlFor="batt-qty"
+                            style={{
+                              color: "#a0b4c8",
+                              fontSize: "9px",
+                              display: "block",
+                              marginBottom: "4px",
+                              fontWeight: 600,
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            Battery Quantity
+                          </label>
+                          <select
+                            id="batt-qty"
+                            data-ocid="form.battery_quantity.select"
+                            value={customer.batteryQuantity ?? 1}
+                            onChange={(e) =>
+                              updateCustomer(
+                                "batteryQuantity",
+                                Number.parseInt(e.target.value),
+                              )
+                            }
+                            className={fieldClass}
+                            style={{
+                              ...selectStyle,
+                              fontSize: "11px",
+                              padding: "6px 10px",
+                            }}
+                          >
+                            {[1, 2, 3, 4].map((qty) => (
+                              <option key={qty} value={qty}>
+                                {qty} {qty === 1 ? "Battery" : "Batteries"}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Battery Backup Dropdown */}
+                        <div>
+                          <label
+                            htmlFor="batt-backup"
+                            style={{
+                              color: "#a0b4c8",
+                              fontSize: "9px",
+                              display: "block",
+                              marginBottom: "4px",
+                              fontWeight: 600,
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            Battery Backup
+                          </label>
+                          <select
+                            id="batt-backup"
+                            data-ocid="form.battery_backup.select"
+                            value={
+                              customer.batteryBackupKWh ?? customer.capacity
+                            }
+                            disabled={isBackupFixed}
+                            onChange={(e) =>
+                              updateCustomer(
+                                "batteryBackupKWh",
+                                Number.parseInt(e.target.value),
+                              )
+                            }
+                            className={fieldClass}
+                            style={{
+                              ...selectStyle,
+                              fontSize: "11px",
+                              padding: "6px 10px",
+                              opacity: isBackupFixed ? 0.7 : 1,
+                              cursor: isBackupFixed ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {backupOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          {hasBatteryUpgrade && (
+                            <div
+                              style={{
+                                marginTop: "6px",
+                                background: "rgba(212,175,55,0.12)",
+                                border: "1px solid rgba(212,175,55,0.4)",
+                                borderRadius: "5px",
+                                padding: "5px 8px",
+                                fontSize: "9px",
+                                color: "#D4AF37",
+                                fontWeight: 600,
+                              }}
+                            >
+                              ⚡ Extra 5kWh backup: +₹1,60,000 added to total
+                              price
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 

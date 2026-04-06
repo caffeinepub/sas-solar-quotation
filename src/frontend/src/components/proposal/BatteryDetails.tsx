@@ -3,13 +3,23 @@ import PageHeader from "./PageHeader";
 
 const GREEN = "#1B6B45";
 const BLUE = "#1A4FA0";
+const AMBER = "#b45309";
+const AMBER_LIGHT = "#fef3c7";
 
-const BATTERY_BRANDS = [
+const LITHIUM_BRANDS = [
   { name: "Tata Power", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
   { name: "Waree Energies", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
   { name: "Luminous", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
   { name: "Havells", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
   { name: "Exide", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
+];
+
+const LEAD_ACID_BRANDS = [
+  { name: "Exide", type: "Lead Acid (Tubular/VRLA)", icon: "🔋" },
+  { name: "Luminous", type: "Lead Acid (Tubular/VRLA)", icon: "🔋" },
+  { name: "Amaron", type: "Lead Acid (Tubular/VRLA)", icon: "🔋" },
+  { name: "Su-Kam", type: "Lead Acid (Tubular/VRLA)", icon: "🔋" },
+  { name: "Okaya", type: "Lead Acid (Tubular/VRLA)", icon: "🔋" },
 ];
 
 const LI_ION_ADVANTAGES = [
@@ -23,12 +33,26 @@ const LI_ION_ADVANTAGES = [
   "Wide operating temperature range",
 ];
 
+const LEAD_ACID_POINTS = [
+  "Proven and reliable technology",
+  "Cost-effective for budget installations",
+  "Widely available across India",
+  "Easy to replace locally",
+  "Available in multiple capacity options",
+  "Suitable for moderate backup needs",
+  "Recyclable and environment-friendly",
+  "Compatible with all solar inverters",
+];
+
 interface Props {
   customer: CustomerData;
 }
 
 export default function BatteryDetails({ customer }: Props) {
   const systemKW = customer.capacity;
+  const isLeadAcid = customer.batteryType === "lead_acid";
+
+  // Lithium Ion values
   const backupKWh = customer.batteryBackupKWh ?? systemKW;
   const qty =
     customer.batteryQuantity && customer.batteryQuantity > 1
@@ -37,12 +61,19 @@ export default function BatteryDetails({ customer }: Props) {
   const backupHours = backupKWh / systemKW;
   const totalKWh = backupKWh * qty;
 
+  // Lead Acid values
+  const laAH = customer.leadAcidCapacityAH ?? 150;
+  const laQty = customer.batteryQuantity ?? 1;
+  const laTotalAH = laAH * laQty;
+  const laTotalVoltage = laQty * 12;
+
   const systemLabel =
     customer.systemType === "hybrid"
       ? "HYBRID SOLAR SYSTEM"
       : "OFF-GRID SOLAR SYSTEM";
 
-  const specs = [
+  // ─── Lithium Ion Specs ───────────────────────────────────────────────────────
+  const lithiumSpecs = [
     { label: "Battery Type", value: "Lithium Ion (LiFePO4)", highlight: true },
     { label: "Capacity", value: `${backupKWh} kWh`, highlight: true },
     {
@@ -70,6 +101,504 @@ export default function BatteryDetails({ customer }: Props) {
     { label: "Efficiency", value: "\u2265 95% Round-Trip", highlight: false },
   ];
 
+  // ─── Lead Acid Specs ─────────────────────────────────────────────────────────
+  const leadAcidSpecs = [
+    {
+      label: "Battery Type",
+      value: "Lead Acid (VRLA/Tubular)",
+      highlight: true,
+    },
+    { label: "Capacity", value: `${laAH} AH`, highlight: true },
+    { label: "Quantity", value: `${laQty}x Batteries`, highlight: true },
+    { label: "Voltage", value: "12V per Battery", highlight: false },
+    { label: "Warranty", value: "2 Years", highlight: false },
+    { label: "Technology", value: "Tubular / VRLA", highlight: false },
+    { label: "Maintenance", value: "Every 3–6 months", highlight: false },
+  ];
+
+  if (isLeadAcid) {
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LEAD ACID RENDER
+    // ═══════════════════════════════════════════════════════════════════════════
+    return (
+      <div className="a4-page" style={{ fontSize: "10px" }}>
+        <PageHeader
+          title="Battery Storage System Details"
+          subtitle="Lead Acid Battery Specifications"
+        />
+
+        {/* System type badge */}
+        <div
+          style={{
+            marginBottom: "12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+          }}
+        >
+          <div
+            style={{
+              background: GREEN,
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "10px",
+              letterSpacing: "1.5px",
+              padding: "5px 14px",
+              borderRadius: "20px",
+            }}
+          >
+            🔋 {systemLabel}
+          </div>
+          <div
+            style={{
+              background: AMBER_LIGHT,
+              color: AMBER,
+              fontWeight: 700,
+              fontSize: "10px",
+              padding: "5px 14px",
+              borderRadius: "20px",
+              border: `1px solid ${AMBER}`,
+            }}
+          >
+            LEAD ACID BATTERY
+          </div>
+          {laQty > 1 && (
+            <div
+              style={{
+                background: "#E8F0FA",
+                color: BLUE,
+                fontWeight: 700,
+                fontSize: "10px",
+                padding: "5px 14px",
+                borderRadius: "20px",
+                border: `1px solid ${BLUE}`,
+              }}
+            >
+              {laQty}x BATTERIES
+            </div>
+          )}
+        </div>
+
+        {/* Main layout: specs table + capacity info */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "12px",
+            marginBottom: "12px",
+          }}
+        >
+          {/* Battery Specs Table */}
+          <div>
+            <p
+              style={{
+                color: GREEN,
+                fontSize: "9px",
+                fontWeight: 700,
+                letterSpacing: "1px",
+                margin: "0 0 6px",
+              }}
+            >
+              BATTERY SPECIFICATIONS
+            </p>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: "9px",
+              }}
+            >
+              <tbody>
+                {leadAcidSpecs.map((s, i) => (
+                  <tr
+                    key={s.label}
+                    style={{
+                      background: i % 2 === 0 ? "#fef3c7" : "#fff",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    <td
+                      style={{
+                        padding: "5px 8px",
+                        color: "#4a5568",
+                        fontWeight: 600,
+                        width: "45%",
+                      }}
+                    >
+                      {s.label}
+                    </td>
+                    <td
+                      style={{
+                        padding: "5px 8px",
+                        color: s.highlight ? AMBER : "#1A1A1A",
+                        fontWeight: s.highlight ? 700 : 500,
+                      }}
+                    >
+                      {s.value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Capacity Info Box */}
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            <div
+              style={{
+                background: AMBER,
+                borderRadius: "8px",
+                padding: "12px",
+                color: "#fff",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "1px",
+                  margin: "0 0 8px",
+                  color: "rgba(255,255,255,0.7)",
+                }}
+              >
+                BATTERY BANK DETAILS
+              </p>
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  borderRadius: "6px",
+                  padding: "10px",
+                  marginBottom: "8px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    margin: "0 0 2px",
+                    color: "#fff",
+                  }}
+                >
+                  Total Capacity: {laTotalAH} AH
+                </p>
+                <p
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    margin: "0 0 4px",
+                    color: "rgba(255,255,255,0.9)",
+                  }}
+                >
+                  System Voltage: {laTotalVoltage}V
+                </p>
+                <p
+                  style={{
+                    fontSize: "8.5px",
+                    margin: 0,
+                    color: "rgba(255,255,255,0.8)",
+                  }}
+                >
+                  Actual backup depends on load and discharge depth
+                </p>
+              </div>
+              <p
+                style={{
+                  fontSize: "8.5px",
+                  margin: 0,
+                  color: "rgba(255,255,255,0.85)",
+                  lineHeight: "1.5",
+                }}
+              >
+                Each battery is 12V / {laAH}AH. {laQty} batteries connected for
+                a {laTotalAH}AH @ {laTotalVoltage}V bank.
+              </p>
+              <div
+                style={{
+                  marginTop: "8px",
+                  background: "rgba(255,255,255,0.15)",
+                  borderRadius: "6px",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    margin: "0 0 2px",
+                    color: "#fff",
+                  }}
+                >
+                  {laQty}x {laAH}AH @ 12V = {laTotalAH}AH Total
+                </p>
+                <p
+                  style={{
+                    fontSize: "9px",
+                    margin: 0,
+                    color: "rgba(255,255,255,0.8)",
+                  }}
+                >
+                  DOD 50% recommended for longer battery life
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: AMBER_LIGHT,
+                border: `2px solid ${AMBER}`,
+                borderRadius: "8px",
+                padding: "10px",
+                textAlign: "center",
+              }}
+            >
+              <p
+                style={{
+                  color: AMBER,
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "1px",
+                  margin: "0 0 4px",
+                }}
+              >
+                SYSTEM SUMMARY
+              </p>
+              <p
+                style={{
+                  color: "#1A1A1A",
+                  fontFamily: "Georgia, serif",
+                  fontSize: "22px",
+                  fontWeight: 700,
+                  margin: "0 0 2px",
+                }}
+              >
+                {systemKW}kW
+              </p>
+              <p
+                style={{
+                  color: AMBER,
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  margin: "0 0 4px",
+                }}
+              >
+                Off-Grid System
+              </p>
+              <div
+                style={{ borderTop: `1px solid ${AMBER}33`, paddingTop: "6px" }}
+              >
+                <p
+                  style={{
+                    color: BLUE,
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    margin: 0,
+                  }}
+                >
+                  {laQty}x {laAH}AH Lead Acid Batteries
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Battery Brands Section */}
+        <div style={{ marginBottom: "12px" }}>
+          <p
+            style={{
+              color: BLUE,
+              fontSize: "9px",
+              fontWeight: 700,
+              letterSpacing: "1px",
+              margin: "0 0 8px",
+            }}
+          >
+            APPROVED BATTERY BRANDS WE SUPPLY
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(5, 1fr)",
+              gap: "6px",
+              marginBottom: "6px",
+            }}
+          >
+            {LEAD_ACID_BRANDS.map((brand) => (
+              <div
+                key={brand.name}
+                style={{
+                  background: "#f8fafc",
+                  border: `1px solid ${AMBER}33`,
+                  borderRadius: "6px",
+                  padding: "8px 6px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: "16px", marginBottom: "4px" }}>
+                  {brand.icon}
+                </div>
+                <p
+                  style={{
+                    color: AMBER,
+                    fontWeight: 700,
+                    fontSize: "9px",
+                    margin: "0 0 2px",
+                  }}
+                >
+                  {brand.name}
+                </p>
+                <p style={{ color: "#4a5568", fontSize: "8px", margin: 0 }}>
+                  {brand.type}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p
+            style={{
+              color: "#7a8898",
+              fontSize: "8.5px",
+              fontStyle: "italic",
+              margin: 0,
+            }}
+          >
+            * Brand selection as per availability and customer preference
+          </p>
+        </div>
+
+        {/* Lead Acid Key Points */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "12px",
+          }}
+        >
+          <div
+            style={{ background: AMBER, borderRadius: "8px", padding: "10px" }}
+          >
+            <p
+              style={{
+                color: "rgba(255,255,255,0.7)",
+                fontSize: "9px",
+                fontWeight: 700,
+                letterSpacing: "1px",
+                margin: "0 0 6px",
+              }}
+            >
+              LEAD ACID BATTERY — KEY POINTS
+            </p>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+              {LEAD_ACID_POINTS.map((pt) => (
+                <li
+                  key={pt}
+                  style={{
+                    display: "flex",
+                    gap: "6px",
+                    alignItems: "flex-start",
+                    padding: "2px 0",
+                    borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "#FDE68A",
+                      fontSize: "10px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ✓
+                  </span>
+                  <span
+                    style={{
+                      color: "#e2e8f0",
+                      fontSize: "9px",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {pt}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div
+              style={{
+                background: AMBER_LIGHT,
+                border: `1px solid ${AMBER}`,
+                borderRadius: "8px",
+                padding: "10px",
+              }}
+            >
+              <p
+                style={{
+                  color: AMBER,
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  margin: "0 0 6px",
+                }}
+              >
+                BATTERY WARRANTY TERMS
+              </p>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: "14px",
+                  color: AMBER,
+                  fontSize: "9px",
+                  lineHeight: "1.7",
+                }}
+              >
+                <li>2-Year comprehensive battery warranty</li>
+                <li>Service check every 6 months</li>
+                <li>Electrolyte level check and topping up</li>
+                <li>Replacement support within warranty period</li>
+              </ul>
+            </div>
+            <div
+              style={{
+                background: "#fffbf0",
+                border: "1px solid #D4AF37",
+                borderRadius: "8px",
+                padding: "10px",
+              }}
+            >
+              <p
+                style={{
+                  color: "#7a6a3a",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  margin: "0 0 4px",
+                }}
+              >
+                IMPORTANT NOTE
+              </p>
+              <p
+                style={{
+                  color: "#4a5568",
+                  fontSize: "8.5px",
+                  margin: 0,
+                  lineHeight: "1.5",
+                }}
+              >
+                Lead Acid batteries require regular maintenance every 3–6
+                months. Actual backup duration depends on discharge depth (DOD
+                50% recommended for longer battery life). Overcharging and deep
+                discharge should be avoided to maximise battery lifespan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  LITHIUM ION RENDER (unchanged)
+  // ═══════════════════════════════════════════════════════════════════════════
   return (
     <div className="a4-page" style={{ fontSize: "10px" }}>
       <PageHeader
@@ -159,7 +688,7 @@ export default function BatteryDetails({ customer }: Props) {
             }}
           >
             <tbody>
-              {specs.map((s, i) => (
+              {lithiumSpecs.map((s, i) => (
                 <tr
                   key={s.label}
                   style={{
@@ -369,7 +898,7 @@ export default function BatteryDetails({ customer }: Props) {
             marginBottom: "6px",
           }}
         >
-          {BATTERY_BRANDS.map((brand) => (
+          {LITHIUM_BRANDS.map((brand) => (
             <div
               key={brand.name}
               style={{

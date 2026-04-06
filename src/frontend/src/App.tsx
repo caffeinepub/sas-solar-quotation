@@ -3,6 +3,7 @@ import LoginPage from "./components/LoginPage";
 import ProposalViewer from "./components/ProposalViewer";
 import QuotationForm from "./components/QuotationForm";
 import SavedQuotations from "./components/SavedQuotations";
+import { createActorWithConfig } from "./config";
 import type { BankDetails, CustomerData, PaymentScheduleData } from "./types";
 
 type View = "login" | "form" | "proposal" | "savedList";
@@ -34,18 +35,24 @@ export default function App() {
     setView("proposal");
   };
 
-  const handleSave = (customer: CustomerData, bank: BankDetails) => {
-    const saved = JSON.parse(localStorage.getItem("sas_saved_quotes") || "[]");
-    saved.unshift({
-      id: Date.now().toString(),
-      savedAt: new Date().toISOString(),
-      customer,
-      bank,
-    });
-    localStorage.setItem(
-      "sas_saved_quotes",
-      JSON.stringify(saved.slice(0, 50)),
-    );
+  const handleSave = async (customer: CustomerData, bank: BankDetails) => {
+    try {
+      const actor = await createActorWithConfig();
+      await actor.saveQuotation(
+        customer.name || "",
+        customer.quotationNumber || "",
+        BigInt(customer.capacity || 0),
+        BigInt(customer.salePrice || 0),
+        customer.mobile || "",
+        customer.panelBrand || "",
+        customer.systemType || "On-Grid",
+        customer.channelPartnerName || "",
+        JSON.stringify(customer),
+        JSON.stringify(bank),
+      );
+    } catch (err) {
+      console.error("Failed to save quotation to backend:", err);
+    }
   };
 
   const handleViewSavedQuote = (customer: CustomerData, bank: BankDetails) => {

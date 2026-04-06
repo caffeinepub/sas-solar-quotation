@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { QuotationRecord } from "../backend";
+import { createActorWithConfig } from "../config";
 import type { BankDetails, CustomerData } from "../types";
 import { formatINR } from "../utils/calculations";
 
@@ -14,21 +16,94 @@ interface Props {
   onViewQuote: (customer: CustomerData, bank: BankDetails) => void;
 }
 
-function loadQuotes(): SavedQuote[] {
+function recordToSavedQuote(r: QuotationRecord): SavedQuote {
+  let customer: CustomerData;
+  let bank: BankDetails;
   try {
-    return JSON.parse(localStorage.getItem("sas_saved_quotes") || "[]");
+    customer = JSON.parse(r.customerDataJson);
   } catch {
-    return [];
+    customer = {
+      name: r.customerName,
+      mobile: r.mobile,
+      capacity: Number(r.capacity),
+      salePrice: Number(r.salePrice),
+      panelBrand: r.panelBrand,
+      systemType: r.systemType,
+      channelPartnerName: r.channelPartnerName,
+    } as CustomerData;
   }
+  try {
+    bank = JSON.parse(r.bankDataJson);
+  } catch {
+    bank = {} as BankDetails;
+  }
+  return {
+    id: r.id,
+    savedAt: r.savedAt,
+    customer,
+    bank,
+  };
 }
 
 export default function SavedQuotations({ onBack, onViewQuote }: Props) {
-  const [quotes, setQuotes] = useState<SavedQuote[]>(loadQuotes);
+  const [quotes, setQuotes] = useState<SavedQuote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleDelete = (id: string) => {
-    const updated = quotes.filter((q) => q.id !== id);
-    localStorage.setItem("sas_saved_quotes", JSON.stringify(updated));
-    setQuotes(updated);
+  const fetchQuotes = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const actor = await createActorWithConfig();
+      const records = await actor.getAllQuotations();
+      // Sort newest first by savedAt (nanosecond timestamp string)
+      const sorted = [...records].sort((a, b) => {
+        const ta = BigInt(a.savedAt);
+        const tb = BigInt(b.savedAt);
+        return tb > ta ? 1 : tb < ta ? -1 : 0;
+      });
+      setQuotes(sorted.map(recordToSavedQuote));
+    } catch (err) {
+      console.error("Failed to load quotations:", err);
+      setError("Failed to load quotations. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchQuotes();
+  }, [fetchQuotes]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      const actor = await createActorWithConfig();
+      await actor.deleteQuotation(id);
+      await fetchQuotes();
+    } catch (err) {
+      console.error("Failed to delete quotation:", err);
+    }
+  };
+
+  const formatSavedAt = (savedAt: string): string => {
+    try {
+      const ms = Number(BigInt(savedAt) / 1_000_000n);
+      return new Date(ms).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      try {
+        return new Date(savedAt).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      } catch {
+        return savedAt;
+      }
+    }
   };
 
   const sectionStyle = {
@@ -91,19 +166,72 @@ export default function SavedQuotations({ onBack, onViewQuote }: Props) {
           >
             Saved Quotations
           </h2>
-          <span
-            className="text-sm px-3 py-1 rounded-full"
-            style={{
-              background: "rgba(212,175,55,0.15)",
-              border: "1px solid rgba(212,175,55,0.3)",
-              color: "#D4AF37",
-            }}
-          >
-            {quotes.length} {quotes.length === 1 ? "Quote" : "Quotes"}
-          </span>
+          <div className="flex items-center gap-2">
+            {!loading && (
+              <span
+                className="text-sm px-3 py-1 rounded-full"
+                style={{
+                  background: "rgba(212,175,55,0.15)",
+                  border: "1px solid rgba(212,175,55,0.3)",
+                  color: "#D4AF37",
+                }}
+              >
+                {quotes.length} {quotes.length === 1 ? "Quote" : "Quotes"}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={fetchQuotes}
+              className="text-xs px-3 py-1 rounded-lg transition-all hover:opacity-80"
+              style={{
+                border: "1px solid rgba(160,180,200,0.3)",
+                color: "#a0b4c8",
+                background: "rgba(255,255,255,0.04)",
+              }}
+            >
+              ↻ Refresh
+            </button>
+          </div>
         </div>
 
-        {quotes.length === 0 ? (
+        {loading ? (
+          <div
+            data-ocid="saved.loading_state"
+            className="text-center py-20"
+            style={sectionStyle}
+          >
+            <div className="text-4xl mb-4">⏳</div>
+            <div className="text-sm" style={{ color: "#a0b4c8" }}>
+              Loading saved quotations…
+            </div>
+          </div>
+        ) : error ? (
+          <div
+            data-ocid="saved.error_state"
+            className="text-center py-20"
+            style={sectionStyle}
+          >
+            <div className="text-4xl mb-4">⚠️</div>
+            <div
+              className="text-base font-semibold mb-2"
+              style={{ color: "#fc8181" }}
+            >
+              {error}
+            </div>
+            <button
+              type="button"
+              onClick={fetchQuotes}
+              className="mt-4 px-6 py-2 rounded-lg text-sm font-bold transition-all hover:opacity-80"
+              style={{
+                background: "rgba(212,175,55,0.15)",
+                border: "1px solid rgba(212,175,55,0.4)",
+                color: "#D4AF37",
+              }}
+            >
+              Try Again
+            </button>
+          </div>
+        ) : quotes.length === 0 ? (
           <div
             data-ocid="saved.empty_state"
             className="text-center py-20"
@@ -118,7 +246,7 @@ export default function SavedQuotations({ onBack, onViewQuote }: Props) {
             </div>
             <div className="text-sm" style={{ color: "#a0b4c8" }}>
               Generate a proposal to save it here. Your quotations will be
-              stored locally and available for download anytime.
+              stored and available for download from any device.
             </div>
             <button
               type="button"
@@ -194,11 +322,7 @@ export default function SavedQuotations({ onBack, onViewQuote }: Props) {
                       Saved On
                     </span>
                     <span className="text-xs" style={{ color: "#ffffff" }}>
-                      {new Date(q.savedAt).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {formatSavedAt(q.savedAt)}
                     </span>
                   </div>
                   {q.customer.mobile && (

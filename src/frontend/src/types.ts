@@ -18,6 +18,8 @@ export interface CustomerData {
   batteryCapacityKWh?: number;
   batteryQuantity?: number;
   batteryBackupKWh?: number;
+  batteryType?: "lithium" | "lead_acid";
+  leadAcidCapacityAH?: number;
 }
 
 export interface BankDetails {

@@ -89,10 +89,84 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface QuotationRecord {
+    id: string;
+    customerName: string;
+    bankDataJson: string;
+    panelBrand: string;
+    savedAt: string;
+    salePrice: bigint;
+    customerDataJson: string;
+    mobile: string;
+    quotationNumber: string;
+    capacity: bigint;
+    channelPartnerName: string;
+    systemType: string;
+}
 export interface backendInterface {
+    deleteQuotation(id: string): Promise<boolean>;
+    getAllQuotations(): Promise<Array<QuotationRecord>>;
+    getQuotationCount(): Promise<bigint>;
+    saveQuotation(customerName: string, quotationNumber: string, capacity: bigint, salePrice: bigint, mobile: string, panelBrand: string, systemType: string, channelPartnerName: string, customerDataJson: string, bankDataJson: string): Promise<string>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async deleteQuotation(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteQuotation(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteQuotation(arg0);
+            return result;
+        }
+    }
+    async getAllQuotations(): Promise<Array<QuotationRecord>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllQuotations();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllQuotations();
+            return result;
+        }
+    }
+    async getQuotationCount(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getQuotationCount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getQuotationCount();
+            return result;
+        }
+    }
+    async saveQuotation(arg0: string, arg1: string, arg2: bigint, arg3: bigint, arg4: string, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveQuotation(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveQuotation(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+            return result;
+        }
+    }
 }
 export interface CreateActorOptions {
     agent?: Agent;

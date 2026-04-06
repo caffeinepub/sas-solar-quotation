@@ -8,10 +8,82 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const idlService = IDL.Service({});
+export const QuotationRecord = IDL.Record({
+  'id' : IDL.Text,
+  'customerName' : IDL.Text,
+  'bankDataJson' : IDL.Text,
+  'panelBrand' : IDL.Text,
+  'savedAt' : IDL.Text,
+  'salePrice' : IDL.Nat,
+  'customerDataJson' : IDL.Text,
+  'mobile' : IDL.Text,
+  'quotationNumber' : IDL.Text,
+  'capacity' : IDL.Nat,
+  'channelPartnerName' : IDL.Text,
+  'systemType' : IDL.Text,
+});
+
+export const idlService = IDL.Service({
+  'deleteQuotation' : IDL.Func([IDL.Text], [IDL.Bool], []),
+  'getAllQuotations' : IDL.Func([], [IDL.Vec(QuotationRecord)], ['query']),
+  'getQuotationCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'saveQuotation' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
+      [IDL.Text],
+      [],
+    ),
+});
 
 export const idlInitArgs = [];
 
-export const idlFactory = ({ IDL }) => { return IDL.Service({}); };
+export const idlFactory = ({ IDL }) => {
+  const QuotationRecord = IDL.Record({
+    'id' : IDL.Text,
+    'customerName' : IDL.Text,
+    'bankDataJson' : IDL.Text,
+    'panelBrand' : IDL.Text,
+    'savedAt' : IDL.Text,
+    'salePrice' : IDL.Nat,
+    'customerDataJson' : IDL.Text,
+    'mobile' : IDL.Text,
+    'quotationNumber' : IDL.Text,
+    'capacity' : IDL.Nat,
+    'channelPartnerName' : IDL.Text,
+    'systemType' : IDL.Text,
+  });
+  
+  return IDL.Service({
+    'deleteQuotation' : IDL.Func([IDL.Text], [IDL.Bool], []),
+    'getAllQuotations' : IDL.Func([], [IDL.Vec(QuotationRecord)], ['query']),
+    'getQuotationCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'saveQuotation' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
+        [IDL.Text],
+        [],
+      ),
+  });
+};
 
 export const init = ({ IDL }) => { return []; };
