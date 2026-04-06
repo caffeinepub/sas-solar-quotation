@@ -6,12 +6,38 @@ const BLUE = "#1A4FA0";
 const AMBER = "#b45309";
 const AMBER_LIGHT = "#fef3c7";
 
-const LITHIUM_BRANDS = [
-  { name: "Tata Power", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
-  { name: "Waree Energies", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
-  { name: "Luminous", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
-  { name: "Havells", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
-  { name: "Exide", type: "Lithium Ion (LiFePO4)", icon: "⚡" },
+const ALL_LITHIUM_BRANDS = [
+  {
+    name: "Tata Power",
+    type: "Lithium Ion (LiFePO4)",
+    icon: "⚡",
+    key: "tata",
+  },
+  {
+    name: "Waree Energies",
+    type: "Lithium Ion (LiFePO4)",
+    icon: "⚡",
+    key: "waree",
+  },
+  {
+    name: "Adani Solar",
+    type: "Lithium Ion (LiFePO4)",
+    icon: "⚡",
+    key: "adani",
+  },
+  {
+    name: "Luminous",
+    type: "Lithium Ion (LiFePO4)",
+    icon: "⚡",
+    key: "luminous",
+  },
+  {
+    name: "Havells",
+    type: "Lithium Ion (LiFePO4)",
+    icon: "⚡",
+    key: "havells",
+  },
+  { name: "Exide", type: "Lithium Ion (LiFePO4)", icon: "⚡", key: "exide" },
 ];
 
 const LEAD_ACID_BRANDS = [
@@ -48,9 +74,21 @@ interface Props {
   customer: CustomerData;
 }
 
+// Returns battery brands with the panel-matched brand first
+function getLithiumBrands(panelBrand: string) {
+  const brand = panelBrand.toLowerCase();
+  let matchKey = "tata"; // default
+  if (brand.includes("waree")) matchKey = "waree";
+  else if (brand.includes("adani")) matchKey = "adani";
+  const matched = ALL_LITHIUM_BRANDS.find((b) => b.key === matchKey);
+  const rest = ALL_LITHIUM_BRANDS.filter((b) => b.key !== matchKey);
+  return matched ? [matched, ...rest] : ALL_LITHIUM_BRANDS;
+}
+
 export default function BatteryDetails({ customer }: Props) {
   const systemKW = customer.capacity;
   const isLeadAcid = customer.batteryType === "lead_acid";
+  const lithiumBrands = getLithiumBrands(customer.panelBrand || "");
 
   // Lithium Ion values
   const backupKWh = customer.batteryBackupKWh ?? systemKW;
@@ -898,7 +936,7 @@ export default function BatteryDetails({ customer }: Props) {
             marginBottom: "6px",
           }}
         >
-          {LITHIUM_BRANDS.map((brand) => (
+          {lithiumBrands.map((brand) => (
             <div
               key={brand.name}
               style={{

@@ -278,12 +278,19 @@ export default function AboutAndBenefits({
             >
               25-YEAR FINANCIAL SUMMARY
             </p>
-            {[
-              ["Project Cost", formatINR(customer.salePrice)],
-              ["Total Subsidy", formatINR(calc.totalSubsidy)],
-              ["Net Investment", formatINR(calc.netCost)],
-              ["Total Savings (25yr)", formatINR(calc.annualSavings * 25)],
-            ].map(([k, v]) => (
+            {(customer.systemType === "offgrid"
+              ? [
+                  ["Project Cost", formatINR(customer.salePrice)],
+                  ["Net Investment", formatINR(customer.salePrice)],
+                  ["Total Savings (25yr)", formatINR(calc.annualSavings * 25)],
+                ]
+              : [
+                  ["Project Cost", formatINR(customer.salePrice)],
+                  ["Total Subsidy", formatINR(calc.totalSubsidy)],
+                  ["Net Investment", formatINR(calc.netCost)],
+                  ["Total Savings (25yr)", formatINR(calc.annualSavings * 25)],
+                ]
+            ).map(([k, v]) => (
               <div
                 key={k}
                 style={{

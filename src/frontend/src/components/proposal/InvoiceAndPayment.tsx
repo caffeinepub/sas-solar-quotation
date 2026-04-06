@@ -112,13 +112,21 @@ function computeItemsOnGrid(
   });
 }
 
-function computeItemsHybrid(salePrice: number, kw: number): LineItem[] {
+function computeItemsHybridOffgrid(
+  salePrice: number,
+  kw: number,
+  systemType: string,
+): LineItem[] {
   // Single kit line item at 5% GST
   const baseAmount = salePrice / 1.05;
+  const kitLabel =
+    systemType === "offgrid"
+      ? `${kw}kW Solar Off-Grid Kit`
+      : `${kw}kW Solar Hybrid Kit`;
   return [
     {
       key: "kit",
-      desc: `${kw}kW Solar Hybrid Kit`,
+      desc: kitLabel,
       hsn: "85414011",
       qty: "1",
       unit: "Set",
@@ -141,7 +149,11 @@ export default function InvoiceAndPayment({
     customer.systemType === "hybrid" || customer.systemType === "offgrid";
 
   const items = isHybridOrOffGrid
-    ? computeItemsHybrid(customer.salePrice, customer.capacity)
+    ? computeItemsHybridOffgrid(
+        customer.salePrice,
+        customer.capacity,
+        customer.systemType,
+      )
     : computeItemsOnGrid(
         customer.salePrice,
         customer.capacity,
@@ -538,12 +550,16 @@ export default function InvoiceAndPayment({
           }}
         >
           <span style={{ color: BLUE, fontSize: "8px", fontWeight: 700 }}>
-            ℹ️ Hybrid System Note:{" "}
+            {customer.systemType === "offgrid"
+              ? "ℹ️ Off-Grid System Note: "
+              : "ℹ️ Hybrid System Note: "}
           </span>
           <span style={{ color: "#1A1A1A", fontSize: "8px" }}>
-            This invoice covers the complete {customer.capacity}kW Solar Hybrid
-            Kit including solar panels, hybrid inverter, Lithium Ion battery (
-            {customer.capacity}kWh), mounting structure, wiring, and 5-year AMC.
+            {customer.systemType === "offgrid"
+              ? customer.batteryType === "lead_acid"
+                ? `This invoice covers the complete ${customer.capacity}kW Solar Off-Grid Kit including solar panels, off-grid inverter, Lead Acid battery (${customer.leadAcidCapacityAH || ""}Ah × ${customer.batteryQuantity || 1} Nos), mounting structure, and wiring.`
+                : `This invoice covers the complete ${customer.capacity}kW Solar Off-Grid Kit including solar panels, off-grid inverter, Lithium Ion battery (${customer.capacity}kWh), mounting structure, and wiring.`
+              : `This invoice covers the complete ${customer.capacity}kW Solar Hybrid Kit including solar panels, hybrid inverter, Lithium Ion battery (${customer.batteryBackupKWh || customer.capacity}kWh), mounting structure, wiring, and 5-year AMC.`}
           </span>
         </div>
       )}
@@ -830,7 +846,11 @@ export default function InvoiceAndPayment({
         >
           <strong>Note:</strong>{" "}
           {isHybridOrOffGrid
-            ? `GST @ 5% on complete ${customer.capacity}kW Solar Hybrid Kit (HSN 85414011). Includes panels, hybrid inverter, ${customer.capacity}kWh Lithium Ion battery, mounting, wiring & 5-Year AMC. GST Reg: ${COMPANY.gst} (Odisha, State Code 21).`
+            ? customer.systemType === "offgrid"
+              ? customer.batteryType === "lead_acid"
+                ? `GST @ 5% on complete ${customer.capacity}kW Solar Off-Grid Kit (HSN 85414011). Includes panels, off-grid inverter, Lead Acid battery (${customer.leadAcidCapacityAH || ""}Ah × ${customer.batteryQuantity || 1} Nos), mounting, wiring. GST Reg: ${COMPANY.gst} (Odisha, State Code 21).`
+                : `GST @ 5% on complete ${customer.capacity}kW Solar Off-Grid Kit (HSN 85414011). Includes panels, off-grid inverter, ${customer.capacity}kWh Lithium Ion battery, mounting, wiring. GST Reg: ${COMPANY.gst} (Odisha, State Code 21).`
+              : `GST @ 5% on complete ${customer.capacity}kW Solar Hybrid Kit (HSN 85414011). Includes panels, hybrid inverter, ${customer.batteryBackupKWh || customer.capacity}kWh Lithium Ion battery, mounting, wiring & 5-Year AMC. GST Reg: ${COMPANY.gst} (Odisha, State Code 21).`
             : `GST rates: Solar PV Modules & Inverter @ 5% (HSN 85414011, 85044090); Others @ 18%. All payments in favour of ${bank.accountName}. Cash payments above ₹20,000 not accepted as per IT regulations.`}
         </p>
       </div>

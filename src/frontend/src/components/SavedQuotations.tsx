@@ -28,7 +28,7 @@ function recordToSavedQuote(r: QuotationRecord): SavedQuote {
       capacity: Number(r.capacity),
       salePrice: Number(r.salePrice),
       panelBrand: r.panelBrand,
-      systemType: r.systemType,
+      systemType: r.systemType as CustomerData["systemType"],
       channelPartnerName: r.channelPartnerName,
     } as CustomerData;
   }
@@ -74,16 +74,6 @@ export default function SavedQuotations({ onBack, onViewQuote }: Props) {
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
-
-  const handleDelete = async (id: string) => {
-    try {
-      const actor = await createActorWithConfig();
-      await actor.deleteQuotation(id);
-      await fetchQuotes();
-    } catch (err) {
-      console.error("Failed to delete quotation:", err);
-    }
-  };
 
   const formatSavedAt = (savedAt: string): string => {
     try {
@@ -337,7 +327,7 @@ export default function SavedQuotations({ onBack, onViewQuote }: Props) {
                   )}
                 </div>
 
-                {/* Actions */}
+                {/* Actions - View only, no delete */}
                 <div
                   className="flex gap-2 mt-auto pt-2"
                   style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
@@ -353,19 +343,6 @@ export default function SavedQuotations({ onBack, onViewQuote }: Props) {
                     }}
                   >
                     View Proposal
-                  </button>
-                  <button
-                    type="button"
-                    data-ocid={`saved.delete_button.${idx + 1}`}
-                    onClick={() => handleDelete(q.id)}
-                    className="px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
-                    style={{
-                      background: "rgba(245,101,101,0.12)",
-                      border: "1px solid rgba(245,101,101,0.35)",
-                      color: "#fc8181",
-                    }}
-                  >
-                    Delete
                   </button>
                 </div>
               </div>

@@ -163,7 +163,9 @@ export default function CoverPage({ customer }: { customer: CustomerData }) {
           >
             {[
               "Free electricity up to 300 units/month",
-              "Central subsidy up to ₹78,000",
+              ...(customer.systemType !== "offgrid"
+                ? ["Central subsidy up to ₹78,000"]
+                : []),
               "1 crore households targeted",
             ].map((item) => (
               <span

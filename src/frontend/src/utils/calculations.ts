@@ -1,9 +1,14 @@
 import type { Calculations, CustomerData } from "../types";
 
-export function calculateSubsidy(capacityKW: number): {
+export function calculateSubsidy(
+  capacityKW: number,
+  systemType?: string,
+): {
   central: number;
   state: number;
 } {
+  // Off-Grid systems are NOT eligible for government subsidy
+  if (systemType === "offgrid") return { central: 0, state: 0 };
   if (capacityKW <= 2) return { central: 60000, state: 50000 }; // total 110000
   return { central: 78000, state: 60000 }; // total 138000
 }
@@ -25,6 +30,7 @@ export function getDailyGenerationRange(capacityKW: number): string {
 export function calculate(data: CustomerData): Calculations {
   const { central: centralSubsidy, state: stateSubsidy } = calculateSubsidy(
     data.capacity,
+    data.systemType,
   );
   const totalSubsidy = centralSubsidy + stateSubsidy;
   const netCost = Math.max(0, data.salePrice - totalSubsidy);

@@ -17,6 +17,7 @@ interface Props {
   upiQrImage: string;
   onSave: (customer: CustomerData, bank: BankDetails) => void;
   onViewSaved: () => void;
+  onViewDashboard?: () => void;
 }
 
 const defaultBank: BankDetails = {
@@ -89,6 +90,7 @@ export default function QuotationForm({
   upiQrImage,
   onSave,
   onViewSaved,
+  onViewDashboard,
 }: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [customer, setCustomer] = useState<CustomerData>({
@@ -293,6 +295,21 @@ export default function QuotationForm({
           >
             Saved Quotations
           </button>
+          {onViewDashboard && (
+            <button
+              type="button"
+              data-ocid="form.public_dashboard.button"
+              onClick={onViewDashboard}
+              className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all hover:opacity-80"
+              style={{
+                border: "1px solid rgba(104,211,145,0.4)",
+                color: "#68d391",
+                background: "rgba(104,211,145,0.08)",
+              }}
+            >
+              Public Dashboard
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -822,7 +839,10 @@ export default function QuotationForm({
                               padding: "6px 10px",
                             }}
                           >
-                            {[1, 2, 3, 4].map((qty) => (
+                            {[
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40,
+                              50, 75, 100,
+                            ].map((qty) => (
                               <option key={qty} value={qty}>
                                 {qty} {qty === 1 ? "Battery" : "Batteries"}
                               </option>
@@ -990,7 +1010,10 @@ export default function QuotationForm({
                               padding: "6px 10px",
                             }}
                           >
-                            {[1, 2, 3, 4].map((qty) => (
+                            {[
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40,
+                              50, 75, 100,
+                            ].map((qty) => (
                               <option key={qty} value={qty}>
                                 {qty} {qty === 1 ? "Battery" : "Batteries"}
                               </option>
@@ -1076,7 +1099,10 @@ export default function QuotationForm({
                       className={fieldClass}
                       style={selectStyle}
                     >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((kw) => (
+                      {[
+                        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40,
+                        50, 60, 75, 100,
+                      ].map((kw) => (
                         <option key={kw} value={kw}>
                           {kw} kW
                         </option>
@@ -1414,10 +1440,14 @@ export default function QuotationForm({
               </h3>
               <div className="space-y-2">
                 {[
-                  ["Central Subsidy", formatINR(calc.centralSubsidy)],
-                  ["State Subsidy", formatINR(calc.stateSubsidy)],
-                  ["Total Subsidy", formatINR(calc.totalSubsidy)],
-                  ["Net Cost (after subsidy)", formatINR(calc.netCost)],
+                  ...(customer.systemType !== "offgrid"
+                    ? [
+                        ["Central Subsidy", formatINR(calc.centralSubsidy)],
+                        ["State Subsidy", formatINR(calc.stateSubsidy)],
+                        ["Total Subsidy", formatINR(calc.totalSubsidy)],
+                        ["Net Cost (after subsidy)", formatINR(calc.netCost)],
+                      ]
+                    : []),
                   [
                     "Daily Generation",
                     `${getDailyGenerationRange(customer.capacity)} units/day`,

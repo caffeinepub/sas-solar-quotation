@@ -1,42 +1,35 @@
-# SAS Solar Quotation
+# SAS Solar Quotation - Public Dashboard
 
 ## Current State
-- Off-Grid (and Hybrid) systems show a Battery Storage section in the form and a Battery Details page in the proposal
-- Only Lithium Ion batteries are currently shown — no battery type selection exists
-- Battery quantity (1–4) and backup kWh dropdowns exist for Hybrid/Off-Grid
-- BatteryDetails proposal page shows Lithium Ion specs, backup calculation, and 5 brands (Tata, Waree, Luminous, Havells, Exide)
+- App requires login (admin/sassolar123) to access anything
+- Saved Quotations page exists but is behind login wall
+- SavedQuotations component has a Delete button on each card
+- No public/unauthenticated access route exists
 
 ## Requested Changes (Diff)
 
 ### Add
-- `batteryType` field (`"lithium" | "lead_acid"`) to `CustomerData` type
-- `leadAcidCapacityAH` field (number, e.g. 100–500) to `CustomerData` type
-- Battery Type toggle/dropdown in the QuotationForm battery section — **only visible for Off-Grid** (Hybrid stays Lithium Ion only)
-- When Lead Acid is selected for Off-Grid:
-  - Show Battery Capacity dropdown: 100AH, 150AH, 200AH, 250AH, 300AH, 350AH, 400AH, 500AH
-  - Show Battery Quantity dropdown (1–4, same as existing)
-  - Lead Acid brand names to display: Exide, Luminous, Amaron, Su-Kam, Okaya
-- BatteryDetails proposal page: show Lead Acid specs section when `batteryType === "lead_acid"`
-  - Show capacity in AH, quantity, brand names, and a note about maintenance
-  - Hide Lithium Ion advantages section and replace with Lead Acid relevant info
+- A new `PublicDashboard` component: a read-only, publicly accessible page showing all saved quotations
+- Public dashboard route accessible at app root (no login required) via a URL parameter or separate view state `publicDashboard`
+- The public dashboard shows: customer name, quotation number, capacity (kW), sale price, system type, panel brand, saved date
+- A "View Proposal" button on each card opens the full proposal (read-only)
+- Public dashboard has a header with company logo and branding
+- A counter showing total quotations
+- A public URL link/button so users can share or navigate directly to it
 
 ### Modify
-- `QuotationForm.tsx`: Add battery type toggle (Lithium Ion / Lead Acid) under Off-Grid battery section
-- `types.ts`: Add `batteryType` and `leadAcidCapacityAH` fields
-- `BatteryDetails.tsx`: Conditionally render Lithium Ion or Lead Acid specs based on `batteryType`
-- `handleSystemTypeChange`: Default batteryType to `"lithium"` for Hybrid (Lead Acid not available for Hybrid), allow both for Off-Grid
+- `App.tsx`: Add logic so that if URL contains `?dashboard` or `#dashboard` query param, render public dashboard without requiring login
+- `SavedQuotations.tsx` (admin view): Remove the Delete button entirely - no deletion allowed anywhere
+- Backend `deleteQuotation` function stays in Motoko but is simply never called from the frontend
+- The main QuotationForm page also shows a "Public Dashboard" link button so logged-in admins can share the dashboard URL
 
 ### Remove
-- Nothing removed
+- Delete button from both admin SavedQuotations view and public dashboard
+- handleDelete function and all delete-related code from SavedQuotations.tsx
 
 ## Implementation Plan
-1. Update `types.ts` to add `batteryType` and `leadAcidCapacityAH`
-2. Update `QuotationForm.tsx`:
-   - Add battery type toggle (Lithium Ion / Lead Acid) — visible only when systemType is offgrid
-   - Add Lead Acid capacity dropdown (100AH–500AH) — visible when offgrid + lead_acid
-   - Default batteryType to lithium; reset to lithium if user switches to Hybrid
-3. Update `BatteryDetails.tsx`:
-   - Conditionally render Lead Acid specs when batteryType === lead_acid
-   - Lead Acid brands: Exide, Luminous, Amaron, Su-Kam, Okaya
-   - Show capacity (AH), quantity, maintenance note
-   - Keep Lithium Ion rendering unchanged for lithium type
+1. Create `src/frontend/src/components/PublicDashboard.tsx` - read-only dashboard, no delete, no login needed, same dark premium style
+2. Update `App.tsx` to check URL for `?view=dashboard` on load and show PublicDashboard without requiring auth
+3. Remove delete button and handleDelete from `SavedQuotations.tsx`
+4. Add a "Share Dashboard" button to the QuotationForm or SavedQuotations header that shows the public URL
+5. Validate and deploy

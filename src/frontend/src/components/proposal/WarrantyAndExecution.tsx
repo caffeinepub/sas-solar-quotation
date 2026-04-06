@@ -5,10 +5,17 @@ const BLUE = "#1A4FA0";
 
 interface Props {
   systemType?: string;
+  batteryType?: string;
+  leadAcidCapacityAH?: number;
 }
 
-export default function WarrantyAndExecution({ systemType }: Props) {
+export default function WarrantyAndExecution({
+  systemType,
+  batteryType,
+  leadAcidCapacityAH,
+}: Props) {
   const isHybridOrOffGrid = systemType === "hybrid" || systemType === "offgrid";
+  const isLeadAcid = systemType === "offgrid" && batteryType === "lead_acid";
 
   const warranties = [
     {
@@ -46,10 +53,12 @@ export default function WarrantyAndExecution({ systemType }: Props) {
     ...(isHybridOrOffGrid
       ? [
           {
-            component: "Lithium Ion Battery",
+            component: isLeadAcid ? "Lead Acid Battery" : "Lithium Ion Battery",
             type: "Battery Warranty",
-            duration: "5 Years",
-            detail: "Cell balancing & BMS protection included",
+            duration: isLeadAcid ? "2 Years" : "5 Years",
+            detail: isLeadAcid
+              ? `${leadAcidCapacityAH || ""}Ah | Manufacturer warranty against defects`
+              : "Cell balancing & BMS protection included",
             icon: "🔋",
             hybridBadge: "BATTERY",
           },

@@ -130,7 +130,11 @@ export default function ProposalViewer({
           bank={bank}
           upiQrImage={upiQrImage}
         />
-        <WarrantyAndExecution systemType={customer.systemType} />
+        <WarrantyAndExecution
+          systemType={customer.systemType}
+          batteryType={customer.batteryType}
+          leadAcidCapacityAH={customer.leadAcidCapacityAH}
+        />
         <ThanksPage customer={customer} />
       </div>
     </div>

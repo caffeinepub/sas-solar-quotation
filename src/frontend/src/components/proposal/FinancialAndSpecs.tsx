@@ -85,13 +85,21 @@ export default function FinancialAndSpecs({
           marginBottom: "12px",
         }}
       >
-        {[
-          ["Project Cost", formatINR(customer.salePrice), GREEN],
-          ["Total Subsidy", formatINR(calc.totalSubsidy), BLUE],
-          ["Net Investment", formatINR(calc.netCost), "#c05621"],
-          ["Annual Savings", formatINR(calc.annualSavings), "#276749"],
-          ["Payback", `${calc.paybackYears.toFixed(1)} yrs`, "#2b6cb0"],
-        ].map(([label, val, color]) => (
+        {(customer.systemType === "offgrid"
+          ? [
+              ["Project Cost", formatINR(customer.salePrice), GREEN],
+              ["Net Investment", formatINR(customer.salePrice), "#c05621"],
+              ["Annual Savings", formatINR(calc.annualSavings), "#276749"],
+              ["Payback", `${calc.paybackYears.toFixed(1)} yrs`, "#2b6cb0"],
+            ]
+          : [
+              ["Project Cost", formatINR(customer.salePrice), GREEN],
+              ["Total Subsidy", formatINR(calc.totalSubsidy), BLUE],
+              ["Net Investment", formatINR(calc.netCost), "#c05621"],
+              ["Annual Savings", formatINR(calc.annualSavings), "#276749"],
+              ["Payback", `${calc.paybackYears.toFixed(1)} yrs`, "#2b6cb0"],
+            ]
+        ).map(([label, val, color]) => (
           <div
             key={label}
             style={{
@@ -132,100 +140,120 @@ export default function FinancialAndSpecs({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1.8fr",
+          gridTemplateColumns:
+            customer.systemType === "offgrid" ? "1fr" : "1fr 1.8fr",
           gap: "10px",
           marginBottom: "12px",
         }}
       >
-        <div
-          style={{
-            background: "#E8F5EE",
-            border: `1px solid ${GREEN}`,
-            borderRadius: "6px",
-            padding: "10px",
-          }}
-        >
-          <p
+        {customer.systemType !== "offgrid" && (
+          <div
             style={{
-              color: GREEN,
-              fontSize: "9px",
-              fontWeight: 700,
-              letterSpacing: "1px",
-              margin: "0 0 6px",
+              background: "#E8F5EE",
+              border: `1px solid ${GREEN}`,
+              borderRadius: "6px",
+              padding: "10px",
             }}
           >
-            SUBSIDY BREAKDOWN
-          </p>
-          {[
-            ["Central Subsidy (PM Surya Ghar)", formatINR(calc.centralSubsidy)],
-            ["Odisha State Subsidy", formatINR(calc.stateSubsidy)],
-          ].map(([k, v]) => (
-            <div
-              key={k}
+            <p
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "3px 0",
-                borderBottom: "1px solid #c6e8d5",
+                color: GREEN,
+                fontSize: "9px",
+                fontWeight: 700,
+                letterSpacing: "1px",
+                margin: "0 0 6px",
               }}
             >
-              <span style={{ color: "#2d3748", fontSize: "10px" }}>{k}</span>
-              <span style={{ color: GREEN, fontWeight: 600, fontSize: "10px" }}>
-                {v}
-              </span>
-            </div>
-          ))}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "5px 0 0",
-            }}
-          >
-            <span
-              style={{ color: "#1A1A1A", fontSize: "11px", fontWeight: 700 }}
-            >
-              Total Subsidy
-            </span>
-            <span style={{ color: GREEN, fontWeight: 700, fontSize: "11px" }}>
-              {formatINR(calc.totalSubsidy)}
-            </span>
-          </div>
-          <div
-            style={{
-              marginTop: "10px",
-              paddingTop: "8px",
-              borderTop: `1px solid ${GREEN}`,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: BLUE, fontSize: "10px", fontWeight: 700 }}>
-                25yr ROI
-              </span>
-              <span style={{ color: BLUE, fontSize: "12px", fontWeight: 700 }}>
-                {calc.roi25Year.toFixed(0)}%
-              </span>
-            </div>
+              SUBSIDY BREAKDOWN
+            </p>
+            {[
+              [
+                "Central Subsidy (PM Surya Ghar)",
+                formatINR(calc.centralSubsidy),
+              ],
+              ["Odisha State Subsidy", formatINR(calc.stateSubsidy)],
+            ].map(([k, v]) => (
+              <div
+                key={k}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "3px 0",
+                  borderBottom: "1px solid #c6e8d5",
+                }}
+              >
+                <span style={{ color: "#2d3748", fontSize: "10px" }}>{k}</span>
+                <span
+                  style={{ color: GREEN, fontWeight: 600, fontSize: "10px" }}
+                >
+                  {v}
+                </span>
+              </div>
+            ))}
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                marginTop: "4px",
+                padding: "5px 0 0",
               }}
             >
               <span
-                style={{ color: "#c05621", fontSize: "10px", fontWeight: 700 }}
+                style={{ color: "#1A1A1A", fontSize: "11px", fontWeight: 700 }}
               >
-                Payback
+                Total Subsidy
               </span>
-              <span
-                style={{ color: "#c05621", fontSize: "12px", fontWeight: 700 }}
-              >
-                {calc.paybackYears.toFixed(1)} yrs
+              <span style={{ color: GREEN, fontWeight: 700, fontSize: "11px" }}>
+                {formatINR(calc.totalSubsidy)}
               </span>
             </div>
+            <div
+              style={{
+                marginTop: "10px",
+                paddingTop: "8px",
+                borderTop: `1px solid ${GREEN}`,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span
+                  style={{ color: BLUE, fontSize: "10px", fontWeight: 700 }}
+                >
+                  25yr ROI
+                </span>
+                <span
+                  style={{ color: BLUE, fontSize: "12px", fontWeight: 700 }}
+                >
+                  {calc.roi25Year.toFixed(0)}%
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    color: "#c05621",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                  }}
+                >
+                  Payback
+                </span>
+                <span
+                  style={{
+                    color: "#c05621",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {calc.paybackYears.toFixed(1)} yrs
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <p
